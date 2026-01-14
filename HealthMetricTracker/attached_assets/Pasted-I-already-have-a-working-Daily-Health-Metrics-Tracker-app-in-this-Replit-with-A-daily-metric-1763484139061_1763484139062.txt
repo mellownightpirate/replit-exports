@@ -1,0 +1,200 @@
+I already have a working “Daily Health Metrics Tracker” app in this Replit, with:
+
+- A `daily_metrics` table (date, steps, weight_kg, calories_burned_total, calories_eaten, calorie_balance, etc.).
+- `calorie_entries` with CBT-E style columns.
+- `user_settings` with `maintenance_calories`, a `current_mode` (“maintenance”, “loss_gentle”, “loss_standard”, “loss_aggressive”), and deficit values.
+- Daily summary text, a progress bar for calories, and several charts and tables.
+
+Please refactor and improve the app with the following requirements.
+
+==================================================
+A. DYNAMIC CALORIE TARGETS TIED TO CALORIES BURNED
+==================================================
+
+Right now the daily calorie target is mostly static (maintenance minus a fixed deficit). I want it to **change dynamically with the number of calories I burn**.
+
+1. **Dynamic target formula**
+
+For a given date where `calories_burned_total` is known:
+
+- First compute a recommended intake based on actual burn and mode:
+
+  - Maintenance:  
+    `dynamic_target = calories_burned_total`  
+    (aiming for roughly zero balance).
+
+  - Gentle loss:  
+    `dynamic_target = calories_burned_total - deficit_gentle`
+
+  - Standard loss:  
+    `dynamic_target = calories_burned_total - deficit_standard`
+
+  - Aggressive loss:  
+    `dynamic_target = calories_burned_total - deficit_aggressive`
+
+- Clamp `dynamic_target` to a minimum safe floor, for example 1,200 kcal.
+- If `calories_burned_total` is missing for the day, fall back to:
+  - `maintenance_calories` from `user_settings` for maintenance.
+  - `maintenance_calories - deficit_*` for the loss modes.
+
+2. **Persisting and updating the target**
+
+- Continue to store `daily_calorie_target` in `daily_metrics`.
+- Whenever any of these change for a given date:
+  - `calories_burned_total`
+  - `mode`
+  - user settings (`maintenance_calories` or deficits)
+  
+  recompute and update `daily_calorie_target` using the dynamic formula above.
+- `calorie_balance` is still `calories_eaten - calories_burned_total`.
+
+3. **Daily / weekly / monthly burn and deficit summaries**
+
+Extend the backend so that `GET /api/daily-summary/{date}` returns:
+
+- `burn_today` = `calories_burned_total` for that date.
+- `burn_last_7_days` = sum of burn over the last 7 days (including the date).
+- `burn_last_30_days` = sum of burn over the last 30 days.
+- `avg_daily_deficit_last_7_days` and `avg_daily_deficit_last_30_days` based on `calorie_balance` (negative balance means deficit).
+- `avg_calories_eaten_last_7_days` and `avg_calories_burned_last_7_days`.
+
+You can implement these as helper functions that operate over `daily_metrics`, no need to change the schema.  
+
+Expose these figures in the JSON and make sure the summary text references them briefly.
+
+==================================================
+B. PROTEIN TARGET LINKED TO BODY WEIGHT
+==================================================
+
+I want my **protein target to be calculated as roughly double my body weight in kilograms**, in grams.
+
+1. **Automatic protein target**
+
+- For each date, if `weight_kg` is present and `protein_target_g` is null or zero:
+  - Set `protein_target_g = round(weight_kg * 2.0)`.
+- If `weight_kg` is missing that day, you can:
+  - Use the most recent previous weight_kg value for that date range, or
+  - Leave `protein_target_g` null and show a friendly message in the summary that weight is missing.
+
+2. **Manual override**
+
+- Keep the existing ability to manually edit `protein_target_g` in the daily metrics form.
+- If the user manually changes `protein_target_g`, respect that override and do not auto-recalculate for that date unless weight or target is explicitly edited again.
+
+3. **Summary and visuals**
+
+- In `GET /api/daily-summary/{date}`, include:
+  - `protein_target_g`
+  - `protein_total_g`
+  - `protein_percentage = protein_total_g / protein_target_g * 100` when target is set.
+- In the summary text, clearly tell me whether my protein intake is:
+  - “well below”, “a bit below”, “close to”, or “above” my target, based on simple thresholds.
+
+==================================================
+C. HARSH CRITIQUE OF CURRENT UI AND REQUESTED REDESIGN
+==================================================
+
+From the current screenshots, here are issues with the design that I want you to fix:
+
+**Problems with the current UI**
+
+1. The layout feels **dense and overwhelming**:
+   - Long tables, large charts, and the entry form all sit in one long scroll.
+   - There is no clear separation between “today” and “history”.
+2. The **summary text** is a long blue bar with emojis, which is hard to scan quickly.
+3. The **charts are cluttered**:
+   - Many lines and points, small fonts, cramped legends.
+   - It is difficult to understand “what matters” at a glance.
+4. The **colour usage** is inconsistent:
+   - Calorie balance colours in the table and charts are not clearly explained.
+   - Some charts use similar hues, making them hard to distinguish.
+5. The **daily metrics card on the right** is cramped with many fields of equal visual weight, so “steps”, “burned” and “targets” all look equally important.
+6. The **entry table** for food has lots of columns with small text, which is ideal for data but not for quick daily review.
+7. The page reads more like a raw analytics dashboard than a personal coaching or journalling tool.
+
+**Redesign goals**
+
+I want a UI that is:
+
+- Much simpler and more “human friendly”.
+- Optimised for **one day at a time**, with history still accessible but secondary.
+- Clear about **what I should do next**.
+
+**Concrete redesign instructions**
+
+1. **Split the page into two main zones:**
+
+   - **Top: “Today” view (primary).**  
+     This should include:
+       - Date selector.
+       - A “Today at a glance” card with:
+         - Mode and daily target.
+         - Calories eaten vs dynamic target vs burn, with a simple ring or progress bar.
+         - Calorie balance (large, coloured number).
+         - Protein total vs target.
+       - A shorter, punchy summary text, for example one or two sentences, not a long paragraph.
+
+   - **Bottom: “History” section (secondary).**  
+     This should have:
+       - A simplified table of past days (date, weight, calories eaten, calories burned, balance, mode).
+       - 2 or 3 key charts:
+         - Weight over time.
+         - Weekly or rolling 7-day calorie balance.
+         - Optional protein trend.
+
+   Use collapsible sections or tabs if needed so the page does not feel like an endless scroll.
+
+2. **Improve the visuals:**
+
+   - Use clearer typography and spacing. Give the main numbers (target, eaten, burned, balance) large, bold text.
+   - Reduce the number of colours. For example:
+     - Green for good / deficit on target.
+     - Amber for slightly off.
+     - Red for significantly over target.
+   - For charts:
+     - Remove any unnecessary grid lines.
+     - Use one or two charts per row.
+     - Ensure labels are readable.
+
+3. **Rework the calorie entry table:**
+
+   - Keep the CBT-E detail but make it easier to scan:
+     - In the “Today” section show only today’s entries.
+     - Move historical entries into the “History” tab or a separate view.
+   - Consider styling the entry list more like a journal:
+     - Time and meal slot as small headings.
+     - Food text and context/comments underneath.
+     - Calories and protein shown as tags or badges on the right, rather than as narrow table cells.
+
+4. **Daily metrics card simplification:**
+
+   - In the daily metrics card, prioritise fields:
+     - Show Steps, Total Calories Burned, Daily Calorie Target, and Protein Target at the top.
+     - Secondary fields (for example manual overrides, less used CBT flags) can be collapsed behind an “Advanced” expander.
+
+5. **Make weekly and monthly numbers visible but light:**
+
+   - In the “Today” view, add a small block, for example:
+
+     - “Last 7 days: average deficit X kcal, average protein Y g, average weight Z kg.”
+     - “Last 30 days: similar summary.”
+
+   - These values should come from the new backend aggregates described earlier.
+
+6. **Accessibility and responsiveness:**
+
+   - Make sure the layout is responsive and still usable on a laptop screen without feeling cramped.
+   - Choose colour contrasts that remain readable.
+
+==================================================
+D. IMPLEMENTATION SUMMARY
+==================================================
+
+Please:
+
+- Update backend models and logic for dynamic calorie targets, weekly and monthly burn / deficit summaries, and auto-calculated protein targets.
+- Update `GET /api/daily-summary/{date}` and any relevant endpoints to include the new fields.
+- Redesign the frontend using the critique and redesign goals above, while keeping the CBT-E functionality.
+- The final result should feel like a focused, coaching oriented “Today” dashboard with a clean “History” view, rather than a cluttered analytics page.
+
+Make all code changes and frontend adjustments needed to achieve this.

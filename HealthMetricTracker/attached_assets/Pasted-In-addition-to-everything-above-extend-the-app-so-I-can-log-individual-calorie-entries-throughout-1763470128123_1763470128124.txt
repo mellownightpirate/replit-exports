@@ -1,0 +1,215 @@
+In addition to everything above, extend the app so I can log **individual calorie entries throughout the day** and see where I am against my daily position and target in real time, plus get a **plain-English description** of how I am doing.
+
+---
+
+## Data model extension for calorie entries
+
+Add a new table `calorie_entries` to capture each meal/snack:
+
+- `id` (integer primary key)
+- `date` (date, indexed)
+- `time` (time or datetime, optional but useful)
+- `description` (short text, e.g. “Breakfast: eggs and toast”)
+- `calories` (float, required)
+- `created_at` (datetime)
+- `updated_at` (datetime)
+
+Relationship:
+
+- Each `calorie_entries` row belongs to a particular `date`.
+- The **sum of `calories` for a given date** should be used to **derive or override** `calories_eaten` in `daily_metrics`.
+
+Behaviour:
+
+- When entries are added/edited/deleted for a given date, recompute that date’s `calories_eaten` in `daily_metrics` as the sum of all `calorie_entries.calories` for that date.
+- If `calorie_entries` exists for a date, treat that sum as the “source of truth” for `calories_eaten` (but still allow manual override via the daily form if needed).
+
+Optionally, add a field `daily_calorie_target` to `daily_metrics` (float, nullable) to represent my goal for that day. If not set, use a sensible default such as 2,200 kcal.
+
+---
+
+## API for calorie entries
+
+Implement endpoints:
+
+1. **List entries for a day**
+
+   - `GET /api/calorie-entries/{date}`
+
+   Returns a JSON array of entries for that date:
+
+   ```json
+   [
+     {"id": 1, "date": "2025-11-18", "time": "08:15", "description": "Breakfast", "calories": 600},
+     {"id": 2, "date": "2025-11-18", "time": "12:45", "description": "Lunch", "calories": 750}
+   ]
+Create or update an entry
+
+POST /api/calorie-entries
+
+Request body:
+
+json
+Copy code
+{
+  "date": "2025-11-18",
+  "time": "15:30",
+  "description": "Snack: protein bar",
+  "calories": 220
+}
+Behaviour:
+
+Create a new entry for that date and time.
+
+After saving, recompute and update daily_metrics.calories_eaten for that date.
+
+Return the new/updated entry plus the updated daily total calories eaten.
+
+Delete an entry
+
+DELETE /api/calorie-entries/{entry_id}
+
+Behaviour:
+
+Delete the entry.
+
+Recompute and update daily_metrics.calories_eaten for the affected date.
+
+Return the updated calories_eaten for that date.
+
+Daily summary endpoint (plain English)
+
+Add an endpoint:
+
+GET /api/daily-summary/{date}
+
+This should:
+
+Read that day’s row in daily_metrics.
+
+Optionally read daily_calorie_target.
+
+Build and return a JSON response with:
+
+date
+
+calories_eaten
+
+calories_burned_total
+
+calorie_balance
+
+daily_calorie_target (if present)
+
+percentage_of_target (if target present)
+
+A plain-English summary_text field such as:
+
+“You have eaten 1,450 kcal out of your 2,200 kcal target (66%). You are in a deficit of 800 kcal compared with your total burn so far. You have roughly 750 kcal left if you want to hit your target.”
+
+Or, if over target: “You are 300 kcal over your 2,200 kcal target today, and 150 kcal above your total burn. If you want to get back to neutral you would need to either eat less tomorrow or increase activity.”
+
+This summary can be generated on the backend using simple rules and string formatting; it does not need an external LLM.
+
+Frontend / UI changes for intra-day calories
+On the main page, add a section dedicated to today’s calorie entries (and any chosen date):
+
+Date selector reuse
+
+Re-use the existing date picker at the top. When I change the date, all of the following should update:
+
+The daily form values.
+
+The calorie entries list for that date.
+
+The running total and summary for that date.
+
+Calorie entry form
+
+Below the main daily metrics form, add a sub-form:
+
+Time input (optional, default to current time).
+
+Description text input (short).
+
+Calories number input.
+
+“Add entry” button that calls POST /api/calorie-entries.
+
+After adding, it should:
+
+Append the new entry to the entries list.
+
+Update the daily total calories_eaten.
+
+Refresh any summary and visualisation.
+
+Entries table / list
+
+For the selected date, show a list or table of entries:
+
+Time
+
+Description
+
+Calories
+
+Optionally a delete icon/button for each entry.
+
+When I delete, update the daily total and summary.
+
+Daily calories visualisation
+
+Add a clear visual component that shows:
+
+A horizontal bar or circular progress indicator for “Calories eaten vs target”:
+
+Total length = daily target (if set, otherwise a default like 2,200).
+
+Filled portion = calories eaten so far.
+
+Optionally, show a second indicator for “Calories eaten vs total burned” for that date.
+
+For example, a simple layout:
+
+“You have eaten 1,600 / 2,200 kcal” with a coloured progress bar.
+
+“Total burned: 2,500 kcal” underneath.
+
+“Balance: –900 kcal (deficit)” with colouring (green for deficit, red for surplus).
+
+The UI can fetch data from /api/daily-summary/{date} to get everything needed in one call.
+
+Summary text display
+
+On the page, add a “Today’s Summary” (or “Summary for [date]”) text block that displays the summary_text field from /api/daily-summary/{date}.
+
+The summary should update whenever:
+
+The date changes.
+
+A new calorie entry is added or deleted.
+
+The main daily metrics form is saved.
+
+This gives me a human-friendly description of how I am doing without needing to interpret charts every time.
+
+Implementation notes
+Keep the logic for recomputing calories_eaten and calorie_balance on the backend so the frontend stays simple.
+
+When the page initially loads, default the date picker to today, load that day’s metrics, entries, charts and summary.
+
+All new UI should be styled simply but clearly, with emphasis on:
+
+Current calories eaten
+
+Daily target
+
+Remaining calories or overage
+
+Calorie balance relative to total burn
+
+Please extend the existing project specification and code accordingly so that I can log individual calorie entries throughout the day, see a running total versus my daily target, and read a plain-English explanation of how I am doing for that date.
+
+makefile
+Copy code

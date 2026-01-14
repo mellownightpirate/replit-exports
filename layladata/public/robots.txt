@@ -1,0 +1,2 @@
+User-agent: *
+Disallow: /layla-analytics-aurora-741

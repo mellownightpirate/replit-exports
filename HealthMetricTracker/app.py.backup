@@ -1,0 +1,441 @@
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+from datetime import datetime, date, timedelta, time as dt_time
+from sqlalchemy.orm import Session
+from database import SessionLocal, init_db
+from models import DailyMetrics, CalorieEntry, WeightMode
+from calorie_helpers import (
+    get_calorie_entries, 
+    add_calorie_entry, 
+    delete_calorie_entry,
+    get_daily_summary,
+    upsert_metric
+)
+from settings_helpers import (
+    get_or_create_settings,
+    update_settings,
+    compute_target_from_settings,
+    get_mode_display_name
+)
+
+init_db()
+
+st.set_page_config(page_title="Health Metrics Tracker", layout="wide")
+
+# Clean header
+st.title("🏃 Health Metrics Tracker")
+
+db = SessionLocal()
+settings = get_or_create_settings(db)
+
+# Top bar: Date selector and settings
+col_date, col_settings = st.columns([2, 1])
+
+with col_date:
+    selected_date = st.date_input(
+        "Select Date",
+        value=date.today(),
+        max_value=date.today(),
+        key="date_selector"
+    )
+
+with col_settings:
+    with st.expander("⚙️ Goal Settings"):
+        with st.form("goal_settings_form"):
+            mode_options = {
+                WeightMode.MAINTENANCE: "Maintenance",
+                WeightMode.LOSS_GENTLE: f"Gentle Loss (-{settings.deficit_gentle:.0f} kcal)",
+                WeightMode.LOSS_STANDARD: f"Standard Loss (-{settings.deficit_standard:.0f} kcal)",
+                WeightMode.LOSS_AGGRESSIVE: f"Aggressive Loss (-{settings.deficit_aggressive:.0f} kcal)"
+            }
+            
+            current_mode_index = list(mode_options.keys()).index(settings.current_mode)
+            
+            new_mode = st.selectbox(
+                "Goal Mode",
+                options=list(mode_options.keys()),
+                index=current_mode_index,
+                format_func=lambda x: mode_options[x]
+            )
+            
+            new_maintenance = st.number_input(
+                "Maintenance Calories",
+                min_value=1200.0,
+                max_value=5000.0,
+                value=settings.maintenance_calories,
+                step=50.0,
+                format="%.0f"
+            )
+            
+            if st.form_submit_button("Save", type="primary"):
+                update_settings(db, maintenance_calories=new_maintenance, current_mode=new_mode)
+                st.success("Settings saved!")
+                st.rerun()
+
+st.divider()
+
+# Get today's summary with all aggregated stats
+summary = get_daily_summary(db, selected_date)
+existing_data = db.query(DailyMetrics).filter(DailyMetrics.date == selected_date).first()
+
+# Main tabs: Today and History
+tab_today, tab_history = st.tabs(["📍 Today", "📊 History"])
+
+# ============================================================================
+# TODAY TAB
+# ============================================================================
+with tab_today:
+    # At-a-glance card
+    st.markdown("### Today at a Glance")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Mode", get_mode_display_name(summary['mode']))
+        if summary['weight_kg']:
+            st.metric("Weight", f"{summary['weight_kg']:.1f} kg")
+    
+    with col2:
+        eaten = summary['calories_eaten']
+        target = summary['daily_calorie_target']
+        pct = summary['percentage_of_target']
+        
+        color = "🟢" if pct <= 90 else ("🟡" if pct <= 110 else "🔴")
+        st.metric("Eaten", f"{eaten:,.0f} kcal", f"{color} {pct:.0f}%")
+        st.metric("Target", f"{target:,.0f} kcal")
+    
+    with col3:
+        burned = summary['calories_burned_total']
+        balance = summary['calorie_balance']
+        st.metric("Burned", f"{burned:,.0f} kcal" if burned > 0 else "—")
+        
+        if burned > 0:
+            balance_color = "🟢" if balance < 0 else "🔴"
+            st.metric("Balance", f"{balance_color} {balance:+,.0f} kcal")
+    
+    with col4:
+        protein_total = summary['protein_total_g']
+        protein_target = summary['protein_target_g']
+        
+        if protein_target and protein_target > 0:
+            protein_pct = summary['protein_percentage']
+            prot_color = "🟢" if 90 <= protein_pct <= 110 else ("🟡" if 70 <= protein_pct <= 110 else "🔴")
+            st.metric("Protein", f"{protein_total:.0f}g", f"{prot_color} {protein_pct:.0f}%")
+            st.metric("Target", f"{protein_target:.0f}g")
+        else:
+            st.metric("Protein", f"{protein_total:.0f}g")
+            st.caption("No target set")
+    
+    # Summary text
+    st.info(summary['summary_text'])
+    
+    # Weekly/Monthly stats
+    with st.expander("📅 Weekly & Monthly Summary"):
+        col_week, col_month = st.columns(2)
+        
+        with col_week:
+            st.markdown("**Last 7 Days**")
+            avg_burn_7 = summary.get('avg_calories_burned_last_7_days', 0)
+            avg_deficit_7 = summary.get('avg_daily_deficit_last_7_days', 0)
+            avg_protein_7 = summary.get('avg_protein_last_7_days')
+            avg_weight_7 = summary.get('avg_weight_last_7_days')
+            
+            st.write(f"Avg burn: {avg_burn_7:,.0f} kcal/day")
+            st.write(f"Avg deficit: {avg_deficit_7:+,.0f} kcal/day")
+            if avg_protein_7:
+                st.write(f"Avg protein: {avg_protein_7:.0f}g/day")
+            if avg_weight_7:
+                st.write(f"Avg weight: {avg_weight_7:.1f} kg")
+        
+        with col_month:
+            st.markdown("**Last 30 Days**")
+            avg_burn_30 = summary.get('avg_calories_burned_last_30_days', 0)
+            avg_deficit_30 = summary.get('avg_daily_deficit_last_30_days', 0)
+            avg_protein_30 = summary.get('avg_protein_last_30_days')
+            avg_weight_30 = summary.get('avg_weight_last_30_days')
+            
+            st.write(f"Avg burn: {avg_burn_30:,.0f} kcal/day")
+            st.write(f"Avg deficit: {avg_deficit_30:+,.0f} kcal/day")
+            if avg_protein_30:
+                st.write(f"Avg protein: {avg_protein_30:.0f}g/day")
+            if avg_weight_30:
+                st.write(f"Avg weight: {avg_weight_30:.1f} kg")
+    
+    st.divider()
+    
+    # Entry section
+    col_entries, col_metrics = st.columns([3, 2])
+    
+    with col_entries:
+        st.markdown("### 🍽️ Food Journal")
+        
+        # Add entry form
+        with st.expander("➕ Log New Entry", expanded=False):
+            with st.form("add_entry_form", clear_on_submit=True):
+                col_t1, col_t2 = st.columns(2)
+                
+                with col_t1:
+                    entry_time = st.time_input("Time", value=datetime.now().time())
+                    entry_slot = st.selectbox(
+                        "Meal",
+                        ["", "Breakfast", "Mid-morning snack", "Lunch", "Afternoon snack", "Dinner", "Evening snack", "Other snack"]
+                    )
+                
+                with col_t2:
+                    entry_calories = st.number_input("Calories", min_value=0.0, step=10.0, format="%.0f")
+                    entry_protein = st.number_input("Protein (g)", min_value=0.0, step=1.0, format="%.1f")
+                
+                entry_description = st.text_input("Food & Drink", placeholder="e.g., Grilled chicken with rice")
+                entry_place = st.text_input("Place", placeholder="e.g., Home, Restaurant")
+                
+                col_f1, col_f2 = st.columns(2)
+                with col_f1:
+                    entry_star = st.text_input("* flag", max_chars=1, placeholder="*")
+                with col_f2:
+                    entry_vl = st.selectbox("V/L", ["", "V", "L"])
+                
+                entry_comments = st.text_area("Context/Comments", placeholder="Optional notes about feelings, circumstances...", height=80)
+                
+                if st.form_submit_button("Add Entry", type="primary", use_container_width=True):
+                    if entry_calories > 0:
+                        add_calorie_entry(
+                            db, selected_date, entry_time, entry_description, entry_calories,
+                            protein_g=entry_protein if entry_protein > 0 else None,
+                            place=entry_place if entry_place else None,
+                            star_flag=entry_star if entry_star else None,
+                            vl_flag=entry_vl if entry_vl else None,
+                            planned_slot=entry_slot if entry_slot else None,
+                            context_comments=entry_comments if entry_comments else None
+                        )
+                        st.success("Entry added!")
+                        st.rerun()
+                    else:
+                        st.error("Please enter calories > 0")
+        
+        # Today's entries (journal style)
+        entries = get_calorie_entries(db, selected_date)
+        
+        if entries:
+            st.markdown(f"**{len(entries)} entries today**")
+            
+            for entry in entries:
+                with st.container():
+                    col_ent1, col_ent2, col_ent3 = st.columns([4, 1, 1])
+                    
+                    with col_ent1:
+                        time_str = entry.time.strftime('%H:%M') if entry.time else 'N/A'
+                        slot_str = f" • {entry.planned_slot}" if entry.planned_slot else ""
+                        st.markdown(f"**{time_str}{slot_str}**")
+                        st.write(entry.description or "No description")
+                        
+                        if entry.place:
+                            st.caption(f"📍 {entry.place}")
+                        if entry.context_comments:
+                            st.caption(f"💭 {entry.context_comments}")
+                    
+                    with col_ent2:
+                        st.write(f"**{entry.calories:.0f}** kcal")
+                        if entry.protein_g:
+                            st.caption(f"{entry.protein_g:.1f}g protein")
+                    
+                    with col_ent3:
+                        flags = []
+                        if entry.star_flag:
+                            flags.append(f"* {entry.star_flag}")
+                        if entry.vl_flag:
+                            flags.append(entry.vl_flag)
+                        if flags:
+                            st.caption(" | ".join(flags))
+                        
+                        if st.button("🗑️", key=f"del_{entry.id}", help="Delete entry"):
+                            delete_calorie_entry(db, entry.id)
+                            st.rerun()
+                    
+                    st.divider()
+        else:
+            st.info("No entries logged yet. Add your first meal above!")
+    
+    with col_metrics:
+        st.markdown("### 📝 Daily Metrics")
+        
+        with st.form("metrics_form"):
+            current_mode = existing_data.mode if existing_data and existing_data.mode else settings.current_mode
+            current_mode_index = list(WeightMode).index(current_mode)
+            
+            mode_for_date = st.selectbox(
+                "Mode for this day",
+                options=list(WeightMode),
+                index=current_mode_index,
+                format_func=lambda x: get_mode_display_name(x)
+            )
+            
+            steps = st.number_input(
+                "Steps",
+                min_value=0,
+                value=existing_data.steps if existing_data and existing_data.steps else 0,
+                step=100
+            )
+            
+            weight_kg = st.number_input(
+                "Weight (kg)",
+                min_value=0.0,
+                max_value=300.0,
+                value=float(existing_data.weight_kg) if existing_data and existing_data.weight_kg else 0.0,
+                step=0.1,
+                format="%.1f",
+                help="Protein target auto-calculates as 2x your weight"
+            )
+            
+            calories_burned_total = st.number_input(
+                "Total Calories Burned",
+                min_value=0.0,
+                value=float(existing_data.calories_burned_total) if existing_data and existing_data.calories_burned_total else 0.0,
+                step=10.0,
+                format="%.1f",
+                help="Calorie target auto-adjusts based on burn"
+            )
+            
+            with st.expander("Advanced Options"):
+                protein_target_g = st.number_input(
+                    "Protein Target Override (g)",
+                    min_value=0.0,
+                    value=float(existing_data.protein_target_g) if existing_data and existing_data.protein_target_g else 0.0,
+                    step=5.0,
+                    format="%.1f",
+                    help="Leave at 0 to auto-calculate as 2x weight"
+                )
+                
+                manual_calories_eaten = st.number_input(
+                    "Manual Calories Override",
+                    min_value=0.0,
+                    value=float(existing_data.calories_eaten) if existing_data and existing_data.calories_eaten and not get_calorie_entries(db, selected_date) else 0.0,
+                    step=10.0,
+                    format="%.1f",
+                    help="Only use if overriding auto-calculated total"
+                )
+            
+            if st.form_submit_button("💾 Save Metrics", type="primary", use_container_width=True):
+                try:
+                    has_entries = len(get_calorie_entries(db, selected_date)) > 0
+                    
+                    data = {
+                        'date': selected_date,
+                        'steps': steps if steps > 0 else None,
+                        'weight_kg': weight_kg if weight_kg > 0 else None,
+                        'calories_burned_total': calories_burned_total if calories_burned_total > 0 else None,
+                        'mode': mode_for_date
+                    }
+                    
+                    if protein_target_g > 0:
+                        data['protein_target_g'] = protein_target_g
+                    
+                    if not has_entries and manual_calories_eaten > 0:
+                        data['calories_eaten'] = manual_calories_eaten
+                    
+                    upsert_metric(db, data)
+                    st.success(f"✅ Saved!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+# ============================================================================
+# HISTORY TAB
+# ============================================================================
+with tab_history:
+    st.markdown("### 📅 Historical Data")
+    
+    from_date = date(2025, 9, 1)
+    to_date = date.today()
+    
+    metrics = db.query(DailyMetrics).filter(
+        DailyMetrics.date >= from_date,
+        DailyMetrics.date <= to_date
+    ).order_by(DailyMetrics.date).all()
+    
+    if metrics:
+        # Simplified table
+        data_list = []
+        for m in metrics:
+            data_list.append({
+                'Date': m.date,
+                'Weight': m.weight_kg,
+                'Eaten': m.calories_eaten,
+                'Burned': m.calories_burned_total,
+                'Balance': m.calorie_balance,
+                'Mode': get_mode_display_name(m.mode) if m.mode else ""
+            })
+        
+        df = pd.DataFrame(data_list)
+        df = df.sort_values('Date', ascending=False)
+        
+        st.dataframe(df, height=300, use_container_width=True)
+        
+        st.divider()
+        
+        # Charts (2 columns)
+        df_sorted = df.sort_values('Date', ascending=True)
+        
+        chart_col1, chart_col2 = st.columns(2)
+        
+        with chart_col1:
+            st.markdown("**Weight Over Time**")
+            df_weight = df_sorted[df_sorted['Weight'].notna()].copy()
+            if not df_weight.empty:
+                fig = px.line(df_weight, x='Date', y='Weight', markers=True)
+                fig.update_layout(
+                    showlegend=False,
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    hovermode='x'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No weight data")
+        
+        with chart_col2:
+            st.markdown("**7-Day Rolling Calorie Balance**")
+            df_balance = df_sorted[df_sorted['Balance'].notna()].copy()
+            if not df_balance.empty and len(df_balance) >= 7:
+                df_balance['Rolling_Avg'] = df_balance['Balance'].rolling(window=7, min_periods=1).mean()
+                
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=df_balance['Date'],
+                    y=df_balance['Rolling_Avg'],
+                    mode='lines+markers',
+                    name='7-day avg',
+                    line=dict(color='#4ECDC4', width=3)
+                ))
+                fig.add_hline(y=0, line_dash="dash", line_color="gray")
+                fig.update_layout(
+                    showlegend=False,
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    hovermode='x'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Need at least 7 days of data")
+        
+        # Protein trend (full width)
+        st.markdown("**Protein Intake Over Time**")
+        df_protein = pd.DataFrame([
+            {'Date': m.date, 'Protein': m.protein_total_g}
+            for m in metrics if m.protein_total_g
+        ])
+        
+        if not df_protein.empty:
+            fig = px.line(df_protein, x='Date', y='Protein', markers=True)
+            fig.update_layout(
+                showlegend=False,
+                margin=dict(l=0, r=0, t=20, b=0),
+                hovermode='x'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No protein data")
+    
+    else:
+        st.info("No data available. Import your CSV file first: `python import_initial_csv.py`")
+
+db.close()

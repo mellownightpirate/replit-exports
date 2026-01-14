@@ -1,0 +1,67 @@
+You are working inside my existing website repo. Make minimal design changes, reuse the current layout, styles, typography, spacing, and components wherever possible.
+
+Goal:
+1) Add a large MP4 (about 75.5MB) as the hero background on the landing page (home page), replacing the current hero image but keeping the same overlay text, layout, and overall look.
+2) Add a new “Past events” page that contains a write-up of our first Layla salon plus a gallery of 24 JPG images (about 62.3MB total).
+3) Ensure performance and mobile behaviour are good, despite the large media.
+
+First, inspect the project to confirm the framework (Next.js, React, Vite, Astro, etc), routing, and where the current hero section lives. Then implement the changes in the native way for this stack.
+
+HOME PAGE HERO VIDEO
+- Use the MP4 as a background video inside the existing hero container.
+- Keep the existing hero headline, subheadline, CTA buttons, and alignment exactly as they are.
+- Video requirements:
+  - autoplay, muted, loop, playsInline
+  - preload="metadata" (not "auto")
+  - object-fit: cover, fills the hero area responsively
+  - add a subtle overlay (reuse the current overlay if there is one) so text stays readable
+  - provide a poster image fallback (use an existing hero image if available, or generate a still frame placeholder from the MP4 if feasible)
+  - respect prefers-reduced-motion: if the user prefers reduced motion, do not autoplay the video, show the poster instead
+  - if autoplay fails on any browser, show the poster and keep the page usable
+- File handling:
+  - Place the video at public/assets/hero/layla-hero.mp4 (or the stack’s equivalent static assets folder)
+  - If repo or hosting limits make this impractical, switch to serving the MP4 from a public URL and reference it, but keep the same behaviour. Add a single config point (for example an env var like HERO_VIDEO_URL) so I can change it later without code edits.
+
+PAST EVENTS PAGE + GALLERY
+- Create a new page/route: /past-events (and add a nav link called “Past events” in the existing navigation).
+- On /past-events, add a section for “Layla, Salon 001” with date and venue, then the updated write-up text (provided below).
+- Add a responsive gallery for 24 images:
+  - Use a clean grid that matches the site style (do not introduce a new visual theme).
+  - Thumbnails should lazy load (loading="lazy") and decode async.
+  - Clicking a thumbnail should open a simple lightbox (modal) to view the larger image, with next/previous controls and escape to close.
+  - Optimisation:
+    - If this is Next.js, use next/image.
+    - Otherwise, implement srcset and sizes if possible.
+    - If the project is Node-based, add an optional script using sharp to generate two sizes per image (thumb and large) and optionally WebP, outputting to a predictable folder. Wire it as an npm script called "optimise-media". If adding this script would be too invasive for the repo, skip it and just implement lazy loading and a sensible grid.
+- Store images under public/assets/past-events/layla-salon-001/ (or the equivalent), keep filenames simple and consistent.
+
+COPY TO USE ON /past-events (replace any existing copy for this event with the text below):
+Title: Layla, Salon 001
+Meta/intro line: Thursday 27 November 2025, Cramer Street Gallery, London
+
+Body copy:
+“On Thursday 27 November we hosted our inaugural Layla salon at Cramer Street Gallery, an intimate, candlelit evening bringing together leaders across data, AI, product, and the creative industries.
+
+Our guest speaker was Tom Furse, artist, musician, and long time member of The Horrors. Tom shared the story of his fifteen year career in music, how his practice has evolved, and how machine learning has become a collaborator in the process, a tool he shapes, guides, and occasionally even ‘tricks’ to reach new aesthetic possibilities.
+
+One idea landed with real clarity. The artist is still steering the system. AI can expand the palette, but it does not replace vision. As Tom put it, every new medium begins with imperfections, and those imperfections often become the signature of a new aesthetic.
+
+He framed AI not as a rupture, but as the latest chapter in a longer lineage, from early synth experiments, to sampling culture, to generative systems. Creativity has always been a conversation between the artist and their tools, and machine learning is simply the newest voice in that dialogue.
+
+After the talk we moved into small group conversations on AI operating models, experimentation and measurement, data culture and decision quality, platform trade offs and cost control, safety, risk, and behaviour in production, and the broader human experience around the work.
+
+What made the evening special was the room. Founders, heads of AI, senior product leaders, data scientists, architects, and artists exploring machine systems, all genuinely curious about ideas, not airtime.
+
+Layla is designed to be more than a one off. We are building a community that stays connected between gatherings, continuing conversations, forming collaborations, and keeping curiosity alive. Future salons will take new forms, in new venues, and eventually new cities, but the ethos stays the same, thoughtful curation, meaningful dialogue, and a blend of technical and creative perspectives.
+
+Thank you to everyone who joined us for the first evening, and especially to Tom for such a generous talk.
+
+More soon,
+Amin and Sara”
+
+ACCEPTANCE CHECKLIST
+- Home page hero shows the MP4 background video, with the same hero layout as before.
+- Past events page exists at /past-events, is linked in nav, and displays the copy and 24-image gallery with lazy loading and a working lightbox.
+- Mobile: hero crops nicely, gallery is usable, and page remains fast enough to scroll smoothly.
+- Accessibility: keyboard works for the lightbox, focus is trapped in modal, and escape closes it.
+- No major visual redesign, only the new media and page.

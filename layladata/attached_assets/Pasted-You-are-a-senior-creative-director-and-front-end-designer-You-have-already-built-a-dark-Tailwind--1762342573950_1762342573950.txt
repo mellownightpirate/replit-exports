@@ -1,0 +1,135 @@
+You are a senior creative director and front end designer.
+
+You have already built a dark, Tailwind styled landing page for **“The Art of Data: After Dark”**.
+
+I now want you to ITERATE on that design with a very different direction:
+
+- Simpler
+- Less like a marketing funnel
+- More intriguing, poetic and ethereal
+- Visually striking and a bit unusual, like an art book or exhibition page, not a SaaS landing page
+
+Please follow these instructions very carefully.
+
+--------------------------------
+1. ANALYSE THE CURRENT DESIGN
+--------------------------------
+
+Briefly (in 4 to 6 bullet points):
+
+- Describe what the current design is doing in terms of layout and hierarchy.
+- Point out where it feels like a typical marketing landing page (for example: hero + benefits + CTA + form, repeated CTAs, “stunning”, “exclusive”, “join us” style copy).
+- Identify any clichés in the copy or layout that we should remove.
+
+Do NOT show any code in this section.
+
+--------------------------------
+2. NEW CREATIVE DIRECTION
+--------------------------------
+
+Use this as the core art direction:
+
+- The event is in an atmospheric gallery in Marylebone at night.
+- Think of a cross between:
+  - an art exhibition page,
+  - an independent magazine,
+  - and a film poster site.
+- It should feel calm, spacious, slightly mysterious, like you have stumbled on a private invitation.
+
+Apply the following principles:
+
+- **Simplicity**
+  - Fewer sections, more negative space.
+  - One primary CTA only, at the bottom: the “Request an invitation” form.
+  - No repeated buttons all over the page.
+
+- **Typography and layout**
+  - Let typography do most of the work.
+  - Use large, cinematic headings and short poetic lines.
+  - Use more vertical spacing and clear alignment, as if this is a printed poster laid out on the web.
+  - It should feel like one continuous scroll, not chopped into “features” and “benefits”.
+
+- **Imagery and visual devices**
+  - Use 1 or 2 strong visual placeholders only.
+  - For example:
+    - A tall, full width hero block that could later hold a gallery interior photo.
+    - A smaller “detail” image placeholder lower down.
+  - Use gradients, subtle borders and lines sparingly, as if this is a gallery wall, not a dashboard.
+
+- **Tone of voice**
+  - Copy should be **less literal, more ethereal**.
+  - Avoid generic marketing phrases like:
+    - “stunning”, “exclusive access”, “unlock”, “discover”, “networking”, “secure your spot”.
+  - Favour short, evocative lines, for example:
+    - “A room of people who care about data and taste.”
+    - “One conversation, then the rest of the night.”
+  - Keep enough concrete info for people to know what it is, but do not over-explain.
+
+--------------------------------
+3. CONTENT STRUCTURE (NEW)
+--------------------------------
+
+Rebuild the page with a simpler structure:
+
+1. **Hero**
+   - Full width, dark, minimal.
+   - Title: “The Art of Data: After Dark”.
+   - Very short subheading of one or two lines that sets the mood.
+   - A single line with “Marylebone, London · Late November 2025”.
+
+2. **Atmosphere section**
+   - One short paragraph or a handful of short lines that describe the feeling of the evening.
+   - Maybe a simple grid of 3 or 4 words / short phrases (for example: “Candlelight”, “Marylebone gallery”, “Data and art”, “Off the record conversations”).
+
+3. **Who is in the room**
+   - Very short descriptions of the people, not in corporate language.
+   - For example: “People who build the tools”, “People who buy them”, “People who turn data into art”.
+
+4. **Event details**
+   - A compact block with Location, Date, Format, Dress code.
+   - Make this visually neat and understated, not loud.
+
+5. **Hosts**
+   - Keep Amin and Sara, but make this visually restrained, like a small “credits” block.
+   - Simple text, maybe initials in circles, no big profile cards.
+
+6. **Invitation form**
+   - Place this at the bottom as the **only** CTA.
+   - Form fields: Name, Email, Role, Company, “What do you work on with data or AI?”, “Who would you love to meet in the room?”
+   - Short calm heading (for example: “Request an invitation”) and one or two lines explaining that places are limited and curated.
+
+--------------------------------
+4. VISUAL STYLE AND IMPLEMENTATION
+--------------------------------
+
+Technical constraints:
+
+- Keep using Tailwind CSS classes only (assume Tailwind is loaded).
+- Keep the dark, warm palette, but reduce visual noise. Fewer shadows and glows, more flat calm surfaces.
+
+Visual direction:
+
+- Backgrounds:
+  - Use deep, almost black slate and subtle gradients.
+- Accents:
+  - Use warm amber or gold very sparingly for lines, small labels or hover states.
+- Text:
+  - Mostly light text on dark background, with clear hierarchy.
+
+Do NOT:
+
+- Add “feature” cards, “benefits” boxes, logos, pricing, testimonials or anything that feels like a marketing funnel.
+- Use more than one primary CTA. The form at the bottom is enough.
+- Use filler lorem ipsum. Use or lightly adapt the existing event copy, but make it more poetic.
+
+--------------------------------
+5. OUTPUT FORMAT
+--------------------------------
+
+Now, output:
+
+1) A short written description (5 bullet points) of the NEW design concept, so I can understand the changes.
+
+2) Then the FULL HTML for the page in one file, with Tailwind classes, implementing the new simpler layout and more ethereal tone.
+
+Do not include any build tooling configuration, React components, or framework specific setup. I only want raw HTML that I can drop into a simple static page.

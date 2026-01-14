@@ -1,0 +1,72 @@
+In addition to everything above, please update the spec as follows.
+
+---
+
+## Daily calorie target (default 3000 kcal) and UI control
+
+1. **Database / model change**
+
+   - Add a column `daily_calorie_target` (float, nullable) to the `daily_metrics` table.
+   - When importing the CSV or creating a new row:
+     - If `daily_calorie_target` is `NULL`, set it to a **default of 3000.0 kcal**.
+   - Expose this field in the relevant Pydantic schemas and API responses.
+
+2. **API changes**
+
+   - For `GET /api/daily-metrics` and `GET /api/daily-metrics/{date}`, include `daily_calorie_target` in the response.
+   - For `POST /api/daily-metrics` (upsert):
+
+     - Allow an optional `daily_calorie_target` field in the request body:
+
+       ```json
+       {
+         "date": "2025-11-18",
+         "steps": 12000,
+         "weight_kg": 90.5,
+         "calories_burned_total": 2600,
+         "calories_eaten": 2400,
+         "daily_calorie_target": 2800
+       }
+       ```
+
+     - If `daily_calorie_target` is provided, update that day’s target.
+     - If it is omitted and the row does not exist yet, default to `3000.0`.
+     - If it is omitted and the row exists, leave the existing target unchanged.
+
+   - For `GET /api/daily-summary/{date}` (described earlier):
+
+     - Always include `daily_calorie_target` in the JSON.
+     - Compute and include:
+       - `percentage_of_target = calories_eaten / daily_calorie_target * 100` (if target is non-null and > 0).
+       - `remaining_to_target = daily_calorie_target - calories_eaten` (can be negative if over target).
+
+3. **Frontend: change target via UI**
+
+   - On the main page, near the date selector and daily metrics form, add a **“Daily calorie target”** number input.
+   - Behaviour:
+
+     - When the date changes, load that day’s `daily_calorie_target` from the API and populate the input.
+     - If there is no target stored, default the input to **3000**.
+     - When I edit the target and click “Save” (same button as for the daily metrics is fine), send `daily_calorie_target` in the `POST /api/daily-metrics` payload for that date.
+     - After saving, refresh the table, charts, and summary so that they all reflect the new target.
+
+   - The **progress bar / circular visual** for calories (added earlier) should use this `daily_calorie_target` as its reference:
+
+     - Show “X / Y kcal” where:
+       - X = `calories_eaten`
+       - Y = `daily_calorie_target`
+     - Colour the bar based on:
+       - Under target and in deficit (for example, green).
+       - Over target (for example, red).
+
+4. **Plain English summary update**
+
+   - Update the logic that builds `summary_text` in `GET /api/daily-summary/{date}` so it takes the new target into account dynamically.
+
+   Example types of messages:
+
+   - If under target and in deficit:
+
+     > “You have eaten 1,850 kcal out of your 3,000 kcal target (62%). You are currently in a deficit of 700 kcal compared with your total burn. You have about 1,150 kcal left if you want to hit today’s target.”
+
+   - If ove

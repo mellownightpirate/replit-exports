@@ -1,0 +1,79 @@
+Add a polished, mobile first onboarding wizard for brand new users.
+
+GOAL
+When a user signs up (or logs in and hasn’t completed onboarding), launch a guided setup wizard that overlays the app, dims and lightly blurs the background, and spotlights the specific UI element for each step. The user should be unable to interact with non highlighted areas. The wizard must be resumable after refresh and skippable, with a “Finish setup” banner if skipped.
+
+UX REQUIREMENTS (MOBILE FIRST)
+- Bottom sheet instruction panel (not a big desktop modal)
+- Spotlight cutout around the target element (or highlighted card)
+- Background dim + subtle blur, spotlight stays crisp
+- Big tap targets, thumb friendly
+- Step progress indicator (e.g. Step 2 of 6)
+- Auto scroll target into view
+- “Back”, “Next”, “Skip for now”
+- Lightweight celebration animation on completion
+
+TECH REQUIREMENTS
+- Implement using react-joyride, shepherd.js, or a custom spotlight overlay system (choose the most reliable for mobile Safari).
+- Add stable anchors in the UI via data attributes, e.g. data-tour="add-habit", data-tour="buddies-tab", data-tour="invite-buddy", data-tour="privacy-settings", data-tour="add-task", data-tour="today-checkin".
+- Persist onboarding state in the database (not only localStorage):
+  - onboardingState: { userId, completed:boolean, stepIndex:int, dismissedAt?:datetime, completedAt?:datetime, updatedAt }
+- On refresh, resume at the same step.
+- If a step is already satisfied (e.g. user already added a habit), auto advance.
+- If the target element doesn’t exist (conditional UI), fall back gracefully by either navigating the user to the correct screen/tab or spotlighting an alternative element.
+
+ONBOARDING FLOW (STEPS)
+1) Welcome and basics
+- Confirm timezone and display name (only if missing).
+- One sentence explanation of the app.
+
+2) Habits setup decision
+- Spotlight “Manage habits” / habits list area.
+- Offer 3 buttons:
+  - Delete default habits (only delete if they match the seed set)
+  - Keep defaults
+  - Edit defaults (takes them to edit screen)
+- Make this a real action, not just instructions.
+
+3) Add first habit
+- Spotlight “Add habit”.
+- Wizard should open the habit form, guide the fields (name, emoji, target frequency), then save.
+
+4) Add a buddy
+- Spotlight Buddies tab then Invite button.
+- Let them invite by username or email.
+- Allow “Skip for now”, but mark onboarding incomplete.
+
+5) Privacy / sharing
+- Spotlight sharing settings.
+- Let them choose what buddies can see:
+  - share habits list
+  - share daily completion status
+  - share tasks titles vs counts only
+- Provide recommended defaults (share habits + status, hide task titles).
+
+6) Add first task for today
+- Spotlight “Add task”.
+- Create a first task, then prompt them to tick it off.
+
+7) First check in + accountability explainer
+- Spotlight a habit toggle or task checkbox, get them to complete something.
+- Show where buddy acknowledgements appear on Today screen and explain “Seen” / “Approved”.
+- If no buddy exists yet, show a small static explainer card and remind them to invite a buddy later.
+
+COMPLETION
+- Mark onboarding completed in DB.
+- Show “Setup complete” view with CTAs:
+  - Go to Today
+  - Invite another buddy
+
+POST ONBOARDING
+- If skipped, show a persistent but unobtrusive banner: “Finish setup (X steps left)”.
+- Add a Profile action: “Restart onboarding”.
+
+IMPLEMENTATION GUIDANCE
+- Put step definitions in a single file (array of step objects: id, route/tab to navigate, target selector, copy, completion predicate, optional action hook).
+- Add a small onboarding controller that can navigate between tabs/routes as needed before showing each step.
+- Ensure no tour runs for returning users with completed onboarding.
+
+Deliver this as production ready code with clean component structure and clear comments on how to add or change steps.

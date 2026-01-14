@@ -1,0 +1,65 @@
+<svg width="400" height="250" viewBox="0 0 400 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="250" rx="8" fill="#F5F8FA"/>
+  <rect x="30" y="40" width="340" height="30" rx="4" fill="white" stroke="#E4E9F0" stroke-width="1"/>
+  <rect x="30" y="70" width="340" height="30" rx="4" fill="#EBF4FF" stroke="#E4E9F0" stroke-width="1"/>
+  <rect x="30" y="100" width="340" height="30" rx="4" fill="white" stroke="#E4E9F0" stroke-width="1"/>
+  <rect x="30" y="130" width="340" height="30" rx="4" fill="white" stroke="#E4E9F0" stroke-width="1"/>
+  <rect x="30" y="160" width="340" height="30" rx="4" fill="white" stroke="#E4E9F0" stroke-width="1"/>
+  <rect x="30" y="190" width="340" height="30" rx="4" fill="white" stroke="#E4E9F0" stroke-width="1"/>
+  
+  <!-- Vertical lines -->
+  <line x1="90.5" y1="40" x2="90.5" y2="220" stroke="#E4E9F0" stroke-width="1"/>
+  <line x1="150.5" y1="40" x2="150.5" y2="220" stroke="#E4E9F0" stroke-width="1"/>
+  <line x1="210.5" y1="40" x2="210.5" y2="220" stroke="#E4E9F0" stroke-width="1"/>
+  <line x1="270.5" y1="40" x2="270.5" y2="220" stroke="#E4E9F0" stroke-width="1"/>
+  <line x1="330.5" y1="40" x2="330.5" y2="220" stroke="#E4E9F0" stroke-width="1"/>
+
+  <!-- Headers -->
+  <text x="60" y="60" font-family="Roboto Mono" font-size="12" font-weight="500" fill="#2C3E50" text-anchor="middle">Date</text>
+  <text x="120" y="60" font-family="Roboto Mono" font-size="12" font-weight="500" fill="#2C3E50" text-anchor="middle">Client</text>
+  <text x="180" y="60" font-family="Roboto Mono" font-size="12" font-weight="500" fill="#2C3E50" text-anchor="middle">Project</text>
+  <text x="240" y="60" font-family="Roboto Mono" font-size="12" font-weight="500" fill="#2C3E50" text-anchor="middle">Status</text>
+  <text x="300" y="60" font-family="Roboto Mono" font-size="12" font-weight="500" fill="#2C3E50" text-anchor="middle">Progress</text>
+  <text x="360" y="60" font-family="Roboto Mono" font-size="12" font-weight="500" fill="#2C3E50" text-anchor="middle">Success</text>
+
+  <!-- Highlighted Row -->
+  <text x="60" y="90" font-family="Inter" font-size="12" fill="#0057D2" text-anchor="middle">2023-04</text>
+  <text x="120" y="90" font-family="Inter" font-size="12" fill="#0057D2" text-anchor="middle">FAANG</text>
+  <text x="180" y="90" font-family="Inter" font-size="12" fill="#0057D2" text-anchor="middle">Dashboard</text>
+  <text x="240" y="90" font-family="Inter" font-size="12" fill="#0057D2" text-anchor="middle">Complete</text>
+  <rect x="280" y="82" width="40" height="6" rx="3" fill="#0057D2"/>
+  <text x="360" y="90" font-family="Inter" font-size="12" fill="#0057D2" text-anchor="middle">98%</text>
+
+  <!-- Regular Rows -->
+  <text x="60" y="120" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">2023-05</text>
+  <text x="120" y="120" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">BoE</text>
+  <text x="180" y="120" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Analytics</text>
+  <text x="240" y="120" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Complete</text>
+  <rect x="280" y="112" width="40" height="6" rx="3" fill="#E4E9F0"/>
+  <rect x="280" y="112" width="32" height="6" rx="3" fill="#27AE60"/>
+  <text x="360" y="120" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">89%</text>
+
+  <text x="60" y="150" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">2023-06</text>
+  <text x="120" y="150" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Health Co</text>
+  <text x="180" y="150" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Strategy</text>
+  <text x="240" y="150" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">In Progress</text>
+  <rect x="280" y="142" width="40" height="6" rx="3" fill="#E4E9F0"/>
+  <rect x="280" y="142" width="24" height="6" rx="3" fill="#F1C40F"/>
+  <text x="360" y="150" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">65%</text>
+
+  <text x="60" y="180" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">2023-07</text>
+  <text x="120" y="180" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Reddit</text>
+  <text x="180" y="180" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Self-Service</text>
+  <text x="240" y="180" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Complete</text>
+  <rect x="280" y="172" width="40" height="6" rx="3" fill="#E4E9F0"/>
+  <rect x="280" y="172" width="38" height="6" rx="3" fill="#27AE60"/>
+  <text x="360" y="180" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">96%</text>
+
+  <text x="60" y="210" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">2023-08</text>
+  <text x="120" y="210" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Startup</text>
+  <text x="180" y="210" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Data Arch</text>
+  <text x="240" y="210" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">Planning</text>
+  <rect x="280" y="202" width="40" height="6" rx="3" fill="#E4E9F0"/>
+  <rect x="280" y="202" width="8" height="6" rx="3" fill="#7F8C8D"/>
+  <text x="360" y="210" font-family="Inter" font-size="12" fill="#2C3E50" text-anchor="middle">20%</text>
+</svg>

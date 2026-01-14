@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply antialiased bg-background text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold;
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl font-semibold;
+    letter-spacing: -0.025em;
+  }
+
+  code, pre, .monospace {
+    font-family: 'JetBrains Mono', monospace;
+    @apply text-sm tracking-tight;
+  }
+
+  .container {
+    @apply px-4 md:px-8 max-w-6xl mx-auto;
+  }
+  
+  /* Custom utility classes */
+  .sigma-shadow {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sigma-card {
+    @apply bg-white rounded-lg border border-gray-200 sigma-shadow transition-all duration-300;
+    &:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  /* Monochrome data-driven aesthetic for buttons and UI */
+  .btn-primary {
+    @apply bg-black text-white hover:bg-gray-800 transition-colors;
+  }
+  
+  .btn-outline {
+    @apply border border-gray-300 bg-white text-black hover:bg-gray-50 transition-colors;
+  }
+  
+  /* Grid styling for dashboard-like elements */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}

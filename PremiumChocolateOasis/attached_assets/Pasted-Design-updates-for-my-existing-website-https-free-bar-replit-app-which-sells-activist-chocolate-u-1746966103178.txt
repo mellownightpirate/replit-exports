@@ -1,0 +1,46 @@
+Design updates for my existing website https://free-bar.replit.app, which sells activist chocolate under the theme: “This Bar Is a Protest.” Keep the same bold visual aesthetic (red/green/paper-texture, protest-inspired, Arabic type hints). Incorporate the following:
+
+1. 🔁 Contribute Call-to-Action Section
+	•	Add a new section below or beside the “Shop Now” buttons with this copy:
+Want to help, but not ready to buy?
+Give us feedback, share your skills, or join our crew.
+We’re a movement, not a company.
+No leaders. Only trusted servants.
+[Join Us →] (Button scrolls to form)
+
+2. 📝 Participation Form (Form Details)
+	•	Embed a form with the following fields:
+	•	Name (optional)
+	•	Email (required)
+	•	What would you like to do? (multi-select checkboxes):
+	•	Give feedback on the chocolate or site
+	•	Help make chocolate
+	•	Share on socials
+	•	Sell or distribute Free Bar
+	•	Help design, write, or fundraise
+	•	Other (with free text box)
+	•	Optional: Message box
+	•	Form submissions should:
+	•	Store in a Google Sheet / database
+	•	Trigger an optional confirmation email (use a free service like Formspree or Netlify Forms)
+
+3. 📱 QR Landing Page
+	•	Create a mobile-first separate page, designed for QR codes at in-person protests:
+	•	Keep headline: “This Bar Is a Protest”
+	•	Short description + form (same as above)
+	•	Include a chocolate bar image + CTA: “Join the Movement”
+	•	Light loading speed and responsive design
+	•	URL path: /join (e.g. https://free-bar.replit.app/join)
+
+4. 🪙 NFT Infrastructure
+	•	Create a new page /nft explaining the NFT fundraiser:
+	•	Headline: Own a piece of chocolate history
+	•	Body: “Support the first activist Palestinian chocolate bar by minting a limited-edition digital artwork. All proceeds help fund our launch and production.”
+	•	Mint options (even 1 NFT): use Zora, Mirror.xyz or Manifold.xyz
+	•	Add wallet connection (e.g. WalletConnect or MetaMask)
+	•	Include a waitlist form for those unfamiliar with NFTs
+	•	Optional: embed the live minting widget from Zora or Mirror
+	•	Page layout must be responsive, clear, and values-aligned. Include:
+	•	Art preview (e.g. Free Bar with tagline “This Bar Is a Protest”)
+	•	FAQ section on how NFTs support the project and why we’re doing this
+	•	Legal disclaimer

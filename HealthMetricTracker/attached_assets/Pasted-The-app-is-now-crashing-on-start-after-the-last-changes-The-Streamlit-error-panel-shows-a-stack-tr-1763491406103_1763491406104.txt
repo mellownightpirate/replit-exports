@@ -1,0 +1,36 @@
+The app is now crashing on start after the last changes.
+
+The Streamlit error panel shows a stack trace ending with:
+
+File "/home/runner/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 129, in exec_func_with_error_handling
+File "/home/runner/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+File "🏋️‍♂️_app.py", line 186, in <module>
+
+Please do the following:
+
+1. Open 🏋️‍♂️_app.py around line 186 and identify the real underlying exception (NameError, OperationalError, etc). Check the Replit console logs if needed.
+2. Fix the bug in code. Common possibilities:
+   - A missing import such as numpy (`np`) or a helper function.
+   - New database fields (maintenance_window_days, loss_*_percent, etc.) being read before the table has those columns, causing a “no such column” SQLite error.
+   - Using a variable before it is defined or handling an empty result set incorrectly.
+
+3. If the issue is a schema mismatch:
+   - Either write a small migration that ALTERs the existing tables to add any new columns, or
+   - Add code that safely initialises missing fields in user_settings and daily_metrics.
+   - Avoid wiping my existing data unless absolutely necessary. If you really must drop the database, first add a short export script so I can reimport it.
+
+4. Once it compiles and runs without errors:
+   - Confirm that:
+     - The Today view loads without a red error box.
+     - The “Clear this day” button calls DELETE /api/daily-data/{date} and actually removes metrics and calorie entries for that date.
+     - Editing weight, steps or total calories burned auto-saves and refreshes the summary (no need to press “Save Metrics”).
+     - Dynamic daily_calorie_target is computed from rolling average burn and goal mode as per the previous spec.
+     - Weekly and monthly stats still work.
+   - If you change function names, routes, or schemas, update the frontend accordingly.
+
+5. Add brief inline comments where you fix the error explaining what was wrong and how it was corrected.
+
+When you are done, run the app and verify in the UI that:
+- Today loads with no error.
+- I can change metrics for the day and see the numbers update live.
+- Clearing a day works.

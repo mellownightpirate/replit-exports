@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendly Link Testing Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        button, a.button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #06D6A0;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+        .alt-button {
+            background-color: #4a6cf7;
+            color: white;
+        }
+        .log-area {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .url-display {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calendly Link Testing Page</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Direct Link</h2>
+        <p>This is a simple anchor tag with target="_blank":</p>
+        <a href="https://calendly.com/amin-hasan" target="_blank" class="button">Open Calendly (Direct Link)</a>
+        <div class="url-display">https://calendly.com/amin-hasan</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: JavaScript Navigation (window.open)</h2>
+        <p>This uses JavaScript's window.open() method:</p>
+        <button onclick="openCalendlyInNewWindow()">Open Calendly (window.open)</button>
+        <div class="url-display">https://calendly.com/amin-hasan</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: JavaScript Navigation (location.href)</h2>
+        <p>This uses JavaScript's window.location.href (will navigate away from this page):</p>
+        <button onclick="redirectToCalendly()" class="alt-button">Open Calendly (location.href)</button>
+        <div class="url-display">https://calendly.com/amin-hasan</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Programmatic Link Click</h2>
+        <p>This creates a link element and clicks it programmatically:</p>
+        <button onclick="programmaticLinkClick()" class="alt-button">Open Calendly (Programmatic Click)</button>
+        <div class="url-display">https://calendly.com/amin-hasan</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <div id="log" class="log-area"></div>
+    </div>
+    
+    <script>
+        const calendlyUrl = "https://calendly.com/amin-hasan";
+        const logElement = document.getElementById("log");
+        
+        function log(message) {
+            const entry = document.createElement("div");
+            entry.textContent = new Date().toLocaleTimeString() + ": " + message;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        function openCalendlyInNewWindow() {
+            try {
+                log("Attempting window.open...");
+                const newWindow = window.open(calendlyUrl, "_blank");
+                
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    log("ERROR: window.open failed (popup likely blocked)");
+                } else {
+                    log("SUCCESS: window.open worked");
+                }
+            } catch (error) {
+                log("ERROR: " + error.message);
+            }
+        }
+        
+        function redirectToCalendly() {
+            try {
+                log("Attempting location.href redirect...");
+                window.location.href = calendlyUrl;
+                log("Location.href redirect initiated");
+                // Note: If this works, the log won't be seen as we navigate away
+            } catch (error) {
+                log("ERROR: " + error.message);
+            }
+        }
+        
+        function programmaticLinkClick() {
+            try {
+                log("Creating and clicking a programmatic link...");
+                const link = document.createElement('a');
+                link.href = calendlyUrl;
+                link.target = "_blank";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                log("Programmatic link click completed");
+            } catch (error) {
+                log("ERROR: " + error.message);
+            }
+        }
+        
+        // Initial log
+        log("Testing page loaded. Browser: " + navigator.userAgent);
+    </script>
+</body>
+</html>

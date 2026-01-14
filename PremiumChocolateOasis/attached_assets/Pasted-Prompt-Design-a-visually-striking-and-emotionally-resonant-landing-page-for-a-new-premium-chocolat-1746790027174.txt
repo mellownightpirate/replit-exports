@@ -1,0 +1,45 @@
+Prompt:
+
+Design a visually striking and emotionally resonant landing page for a new premium chocolate brand that blends healthy eating, mindful indulgence, and spiritual wellbeing.
+
+Brand Overview:
+	•	This is not just chocolate – it’s a ritual of self-care and a celebration of life’s flavours.
+	•	Each bar is inspired by places like Puglia, Seville, and Provence.
+	•	Ethically sourced, dark chocolate blends with Mediterranean ingredients like figs, almonds, sea salt, and herbs.
+	•	It’s designed for those healing from addictive patterns, emotional eating, or diet culture – chocolate that says: “nothing is off the table, not the food, not the feeling.”
+
+Include the following sections in the landing page:
+	1.	Hero Banner:
+	•	High-resolution background of an open chocolate bar on linen with natural lighting.
+	•	Headline: “Chocolate That Grounds You” or “Indulgence Without Guilt”
+	•	Subheadline: “Inspired by the Mediterranean. Rooted in mindfulness. Loved by humans.”
+	•	CTA: “Taste the Journey” → scrolls to flavour profiles or “Get 10% Off Your First Ritual” email signup.
+	2.	Value Proposition (3 bullets with icons):
+	•	🍫 Real, rich, mindful indulgence – made from ethically sourced dark chocolate and natural ingredients.
+	•	🌍 Flavours inspired by travel, stories, and soul – taste fig & almond from Puglia, or lavender & honey from Provence.
+	•	💚 Crafted to support healing from diet culture, binge cycles, and food shame. No moralising. Just chocolate.
+	3.	Product Preview Carousel:
+	•	3 main chocolate bars with photos, flavour notes, and short emotional descriptions (e.g. “Tastes like a summer in Seville – warmth, sweetness, and calm.”)
+	4.	Section: “Why We Exist”
+	•	Brief story about the founder’s healing journey from addiction/diet culture.
+	•	Message: “We believe joy isn’t a reward, it’s a right. You deserve pleasure – no strings attached.”
+	5.	How to Eat It (Instructional Graphic or Video):
+	•	3-step ritual:
+	1.	Pause and unwrap slowly.
+	2.	Take one bite – breathe in the flavour, hold it on the tongue.
+	3.	Ask yourself: What do I need right now? Not to restrict – but to reconnect.
+	6.	Testimonials/Quotes:
+	•	User feedback that normalises imperfection and celebrates enjoyment. E.g., “I used to feel bad for snacking. Now, chocolate is my reminder I’m alive.”
+	7.	Email Capture Funnel:
+	•	Headline: “Join the Ritual”
+	•	Subtext: “Get 10% off your first order, early access to our new flavours, and stories from the journey.”
+	•	Email field + CTA button (“Get the First Taste”)
+	8.	Footer:
+	•	About | Flavours | Contact | Ethical Sourcing | Instagram feed
+	•	Tagline: “Pleasure is not a crime. Presence is not a diet. This is chocolate.”
+
+Design Aesthetic:
+	•	Soft, earthy colours: terracotta, olive green, dark chocolate, cream.
+	•	Handwritten-style typography for warmth and personality.
+	•	Use iconography of maps, hands, cacao pods, and minimal Mediterranean line drawings.
+	•	Responsive mobile-first layout with a clean funnel structure to drive subscriptions and pre-orders.

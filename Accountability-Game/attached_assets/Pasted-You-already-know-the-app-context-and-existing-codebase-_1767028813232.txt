@@ -1,0 +1,144 @@
+You already know the app context and existing codebase. Implement the following changes and redeploy.
+
+PRIORITY 0: REMOVE TASKS FUNCTIONALITY ENTIRELY (FOR NOW)
+- Remove all task UI, routes, API endpoints, and navigation related to tasks and weekly planning.
+- The app should focus only on:
+  - Anchors (formerly habits)
+  - Buddies
+  - Projects (including shared projects)
+  - Public discovery + follows
+  - “Seen” accountability on Anchor check ins
+- If a Tasks table exists in DB, you may keep it temporarily to avoid breaking migrations, but it must not be used anywhere in UI or API.
+- Update copy so the product language no longer references tasks.
+
+PRIORITY 1: CLICKING AN ANCHOR OPENS A STATUS UPDATE PANEL
+Goal: Tapping an Anchor anywhere (Today, Anchors list, buddy view, project view) opens a mobile bottom sheet with meaningful metrics.
+
+UX
+- Mobile first bottom sheet, scrollable, with a clear header: Anchor name + emoji.
+- Include a timeframe selector: Week, Month, All time (default Month).
+- Show key stats:
+  - Target: X times per week (or X per period) based on the Anchor configuration
+  - Completed: Y out of Z (Z depends on timeframe and target)
+  - Completion rate (percentage)
+  - Current streak and best streak
+  - Last check in date
+- Include a simple visual:
+  - For Month: mini calendar heatmap or a 30 day grid showing done vs not done
+  - For Week: bar or dots for each day
+- Include “Edit Anchor” and “Archive Anchor” actions.
+
+Data
+- Use existing Anchor and AnchorLog (check in) data.
+- Ensure calculations are correct with timezone.
+
+PRIORITY 2: “SEEN” MUST BE PER ANCHOR CHECK IN (NOT PER DAY, NOT PER TASK)
+Since tasks are removed, implement Seen per Anchor completion event, meaning:
+- A buddy can mark an individual Anchor check in as “Seen” to acknowledge they saw that the buddy completed that Anchor on that date.
+- Each buddy can mark Seen independently.
+- The owner can see which buddies have marked Seen on each Anchor check in.
+
+Data model
+Create a new table (Prisma) called AnchorSeen (or CheckinSeen):
+- id
+- anchorLogId (the completion record for a given anchorId + dateISO)
+- subjectUserId (owner of the log)
+- viewerUserId (buddy who marked seen)
+- createdAt
+Constraints:
+- unique(anchorLogId, viewerUserId)
+
+Rules
+- Only allow Seen if the AnchorLog indicates done = true.
+- If a completion is toggled back to not done, delete all AnchorSeen rows for that anchorLogId automatically.
+- Only accepted buddies can create AnchorSeen for each other.
+- Respect privacy settings:
+  - If the buddy hides anchor details, still allow Seen but render the row as “Completed Anchor” with an index label.
+
+API
+- POST /api/anchorLogs/:anchorLogId/seen (create or toggle on)
+- DELETE /api/anchorLogs/:anchorLogId/seen (toggle off)
+- When fetching buddy check ins for a date, include:
+  - seenBy (array of viewerUserIds) or seenCount
+  - viewerHasSeen for the current viewer
+
+UI changes
+Buddy view (for a selected date, default Today):
+- Show the buddy’s list of Anchors for that date, each with completion state (read only).
+- For each completed Anchor row, show an eye icon toggle “Seen”.
+- Disabled if not completed.
+Owner view:
+- For each completed Anchor today, show avatars or count of buddies who have seen it.
+- Allow tapping to open a list of who marked Seen.
+
+PRIORITY 3: PUBLIC PROJECTS MUST BE JOINABLE BY OTHER USERS
+Problem: Buddies are not able to join public projects, fix this end to end.
+
+Requirements
+- Project has visibility: PRIVATE | BUDDIES_ONLY | PUBLIC
+- Add a flag allowPublicJoin boolean (default false)
+- If visibility = PUBLIC and allowPublicJoin = true, any authenticated user can join.
+- Joining creates a ProjectMember row with status ACTIVE (no pending for now).
+- Add Leave project action.
+- Project owner can remove members.
+
+Discovery and UI
+- In Projects discovery or on a public project page, show:
+  - Join button if not a member
+  - Leave button if a member
+- Ensure the join button is visible to buddies and non buddies if the project is public and joinable.
+
+Security
+- Only show public projects in discovery if visibility = PUBLIC.
+- Only show join for allowPublicJoin = true.
+- Enforce membership checks for viewing non public projects.
+
+PRIORITY 4: FOLLOW GRAPH ON PUBLIC PROFILES (WHO FOLLOWS WHO)
+Add “Follow” as a separate concept from Buddies.
+
+Data model
+Add Follow table:
+- id
+- followerId
+- followingId
+- createdAt
+Constraints:
+- unique(followerId, followingId)
+Rules:
+- Only allow following a user who has isPublic = true.
+- Prevent following yourself.
+
+API
+- POST /api/follow/:username (follow)
+- DELETE /api/follow/:username (unfollow)
+- GET /api/users/:username/publicProfile should include:
+  - followersCount, followingCount
+  - viewerIsFollowing boolean
+Optional:
+- Endpoints to list followers and following with pagination.
+
+UI
+Public buddy profile (when the target is public):
+- Show Followers and Following counts.
+- Add a Follow / Following button.
+- Add a section that lists followers and following (with pagination) if the profile allows it.
+
+Privacy controls
+- Add settings for public users:
+  - showFollowerList boolean (default true)
+  - showFollowingList boolean (default true)
+If false, show counts only.
+
+ACCEPTANCE CRITERIA
+- No tasks UI exists anywhere, navigation is updated accordingly.
+- Tapping an Anchor opens a bottom sheet showing correct progress metrics and visuals.
+- Seen works per Anchor completion record, buddies can mark Seen, owner can see who marked Seen, Seen clears if completion is undone.
+- Public projects marked joinable can be joined by other users, including non buddies.
+- Public profiles show follow relationships, and users can follow/unfollow.
+
+DELIVERABLES
+- Prisma migrations for new tables/fields (AnchorSeen, Follow, allowPublicJoin, follower list privacy flags)
+- Updated APIs
+- Updated mobile first UI
+- Quick README update describing Seen per Anchor check in and public project joining and follows
+- Redeploy and verify the public URL works.

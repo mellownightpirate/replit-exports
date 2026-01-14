@@ -1,0 +1,78 @@
+You are a senior full stack engineer and product designer. Update the existing Next.js + TypeScript + Tailwind + Zustand MVP of our grand strategy simulation game (currently called “Insight Empire”) with the amendments below. Keep the game playable and minimal, no backend, localStorage persistence, seeded RNG.
+
+Amendments to implement
+
+1) Clear objective reminder + “how to win” guidelines
+- Add a persistent “Mission Brief” panel that always shows:
+  - Win conditions (targets for Adoption, Trust, Governance, Reliability, Latency, Cost)
+  - Loss conditions (trust collapse, reliability collapse, politics collapse)
+  - 5–7 practical guidelines (“How to win”) that are generated from the current scenario and current metrics.
+- The guidelines must be dynamic, not static text. Example rules:
+  - If Governance < 60 and Trust is falling, recommend adding governance policy before expanding self-service.
+  - If Latency rising or high-cardinality event recently occurred, recommend performance tuning before adding more users.
+  - If Support load high, recommend enablement or consolidating dashboards.
+  - If Political capital low, recommend stakeholder action rather than new deployments.
+- Add an optional “Coach Tips” tooltip that explains why each guideline is being suggested (one sentence each).
+
+2) Undo an action
+- Implement Undo for the most recent action within the current turn.
+- Constraints:
+  - Undo should revert state exactly (metrics, deployments, political capital, support load, everything).
+  - Undo should also revert any costs and side effects from that action.
+  - Undo must NOT rewind the event draw for the turn unless the event was triggered directly by the action. Keep this simple by enforcing a rule:
+    - Event is drawn at start of turn and stored, so undo does not change it.
+- Implementation approach:
+  - Maintain a per-turn action history stack of deep-cloned state snapshots (or state patches).
+  - Provide “Undo last action” button disabled when no undo available or after turn resolves.
+  - Make sure Undo does not break seeded RNG determinism.
+
+3) Rename the game (catchier, describes Solutions Architect training)
+- Replace “Insight Empire” everywhere with a new name and subtitle.
+- Propose 8–12 name options, pick the best one, and implement it across UI copy.
+- Naming requirements:
+  - Should evoke strategy, architecture, and data/analytics transformation.
+  - Avoid competitor names.
+  - Examples of the vibe: “Architect’s Atlas”, “Data Estate Commander”, “Analytics Command”.
+- Also add a short tagline under the title (one line).
+
+4) Mascot / main character
+- Add a simple mascot character (vector/SVG or emoji-based) displayed in:
+  - Top-left header next to the game title
+  - Tutorial overlay and event modal as a “narrator”
+  - Mission Brief as the “coach”
+- Keep it lightweight (no external image assets required). Use an inline SVG component.
+- Give the mascot a name and short personality (1–2 lines) shown in the tutorial.
+- Ensure the mascot can “react” with 3–4 expressions (normal, worried, excited, stern) based on current state:
+  - worried if Trust < 40 or Reliability < 40
+  - stern if Governance < 40 while Adoption > 60
+  - excited if all win metrics are trending up
+  - normal otherwise
+
+5) Add a compelling story foundation
+- Add a “Story Mode” wrapper without changing the core mechanics.
+- The story should be grounded in enterprise reality, not fantasy, with light humour.
+- Provide:
+  - Opening cinematic text (30–60 seconds read) introducing the world, the mission, and the stakes.
+  - Scenario intros (2–3 sentences each) explaining why you are taking this approach.
+  - Turn-by-turn flavour text in the event modal header that references the story.
+- Story premise requirement:
+  - The player is a newly appointed Data and Analytics Solutions Architect brought in to unify a fragmented enterprise data estate under tight timelines.
+  - There are internal factions, looming audits, executive mandates, and customer-facing embedded analytics pressure.
+- Keep writing concise, modern, and motivational. British English.
+
+Acceptance criteria
+- The app still runs locally with no errors.
+- Mission Brief is always visible and updates dynamically.
+- Undo works reliably and does not create weird state drift.
+- Game title and subtitle updated everywhere.
+- Mascot appears and reacts.
+- Story mode text is integrated into the UI (intro screen + per-scenario intro + event flavour line).
+- Update README to document the new features and any design choices.
+
+Implementation notes
+- Do not add a backend.
+- Do not add heavy dependencies. If you need deep clone, use structuredClone or a small helper.
+- Keep state logic in a simulation engine module, UI components in components/.
+- Make sure all new copy is easy to adjust later (centralise strings).
+
+Now make these changes in the codebase.

@@ -1,0 +1,109 @@
+You already know the app codebase and stack. Implement “add users retrospectively” for both chats and projects.
+
+PART 1: ADD USERS RETROSPECTIVELY TO AN EXISTING CHAT
+Goal: From an existing chat thread, I can add one or more users after the chat has been created.
+
+Data model (confirm and fix if needed)
+- Chat (id, createdById, isGroup, name?, createdAt)
+- ChatMember (id, chatId, userId, role: ADMIN|MEMBER, joinedAt)
+  - unique(chatId, userId)
+- Message (id, chatId, senderId, content, createdAt)
+
+Rules and permissions
+- Only chat admins can add members (start with createdById as ADMIN; optionally allow promoting others).
+- Users can only be added if:
+  - they are already buddies OR
+  - they are public users (if public discovery exists)
+Choose simplest default: buddies only, but structure it so public can be enabled later.
+
+History visibility decision
+- Newly added users can see full chat history (simplest).
+- Still store joinedAt for future control.
+
+API
+- POST /api/chats/:chatId/members
+  body: { userIds: string[] }
+  behaviour:
+   - validate requester is ADMIN member of chat
+   - create ChatMember rows for new users
+   - return updated members list
+- GET /api/chats/:chatId should return chat + members + messages
+- Optionally add:
+  - GET /api/chats/:chatId/members (members list)
+  - DELETE /api/chats/:chatId/members/:userId (admin remove)
+
+UI (mobile first)
+- In chat screen, add top-right “Chat info” entry.
+- Chat info screen shows:
+  - members list
+  - “Add people” button
+- Add people opens a bottom sheet picker:
+  - list my buddies with search
+  - multi-select
+  - confirm button “Add to chat”
+- After adding, post a system message:
+  - “Amin added Sara”
+- Notify newly added members:
+  - create in-app notification
+  - optionally email if your email notifications system exists
+
+Acceptance
+- I can open a chat, add a buddy, they can open the chat and see messages.
+- Adding multiple users works.
+
+PART 2: ADD USERS RETROSPECTIVELY TO AN EXISTING PROJECT
+Goal: From an existing project, I can invite or add new members after the project exists.
+
+Data model (confirm and fix if needed)
+- Project (id, ownerId, name, visibility, allowPublicJoin, goalTarget, etc.)
+- ProjectMember (id, projectId, userId, role: OWNER|MEMBER, status: INVITED|ACTIVE|LEFT, joinedAt)
+  - unique(projectId, userId)
+
+Rules and permissions
+- Only project owner (or project admins if you support them) can add/invite members.
+- Users can be added in one of two ways:
+  1) Invite flow: status = INVITED, user must accept
+  2) Direct add: status = ACTIVE immediately (owner-only action)
+Implement both:
+- Default to invite, but provide “Add directly” for buddies to reduce friction.
+
+API
+- POST /api/projects/:projectId/members/invite
+  body: { userIds: string[], mode: "INVITE"|"ADD_DIRECT" }
+  behaviour:
+   - auth: requester must be owner/admin
+   - for each user:
+     - if mode=INVITE: upsert ProjectMember status INVITED
+     - if mode=ADD_DIRECT: upsert ProjectMember status ACTIVE, set joinedAt
+   - create notifications for each added/invited user
+- GET /api/projects/:projectId should include:
+  - members list with status
+  - ability for INVITED member to fetch minimal details so they can accept
+
+Invites UI
+- Add “Members” section in Project detail:
+  - show active members
+  - show pending invites (INVITED) with resend/cancel actions
+- Add “Add members” button:
+  - opens same buddy picker UI (with search)
+  - choose Invite or Add directly (toggle)
+- Add an “Invites” inbox screen for the invited users if not already present:
+  - accept/decline project invite
+  - on accept -> status ACTIVE, joinedAt set
+
+Acceptance
+- I can add a user to an existing project, they can see the invite and accept.
+- After acceptance, the project appears in their Projects list.
+- Members list updates correctly and shows pending invites.
+
+CROSS-CUTTING: NOTIFICATIONS
+- When a user is added/invited to a chat or project:
+  - create an in-app notification with a deep link
+  - if email notifications exist and user is offline, send an email
+
+DELIVERABLES
+- DB migrations if needed
+- New endpoints + auth checks
+- Mobile first UI: Chat info → Add people, Project members → Add members
+- Notifications wired for both
+- Deployment verified on https://accountability-game.replit.app/

@@ -1,0 +1,175 @@
+Implement two major upgrades:
+
+A) Public discovery (opt in) so users can be found and added as buddies
+B) Projects, including shared projects with shared goals, where individual habits contribute to a group goal, plus an onboarding wizard that explains this clearly
+
+A) PUBLIC DISCOVERY (OPT IN)
+REQUIREMENTS
+- Add a Profile setting: “Public profile” toggle (default OFF)
+- If ON, the user is discoverable by:
+  - username search
+  - optional “Explore” list (basic, not infinite scrolling)
+- Public profile should show only safe, user approved fields:
+  - username, display name, avatar, bio (optional)
+  - high level stats only (optional): current streak count, overall completion rate (no sensitive detail)
+- Do NOT expose email or private data.
+
+DISCOVERY UX
+- Add a “Discover” screen (under Buddies tab or inside it) with:
+  - search bar: find users by username
+  - optional list of recently active public users (limit, with pagination)
+- Each result card has:
+  - avatar, display name, @username
+  - “Add buddy” button (sends buddy invite)
+- Include privacy messaging:
+  - “You’re only discoverable if you turn Public profile on.”
+
+BACKEND / DATA
+- User table additions:
+  - username (unique, required)
+  - isPublic boolean default false
+  - bio nullable
+- Buddy invitations should work the same way as current buddy flow, but allow invites to public accounts without needing email.
+
+SECURITY
+- Public endpoints must return only public fields.
+- Rate limit search and invites lightly to reduce abuse.
+- Add basic abuse prevention:
+  - if a user blocks another user, they do not appear in search results to each other (simple block table optional).
+
+B) PROJECTS AND SHARED PROJECTS
+CONCEPT
+Users can organise habits into Projects (personal or shared). A Project has a shared goal and a progress tracker. Each member’s individual habit completions contribute to the Project goal, even if members’ habits differ.
+
+DATA MODEL
+Add these tables:
+- Project
+  - id
+  - ownerId (user who created it)
+  - name
+  - description (optional)
+  - visibility: PRIVATE | BUDDIES_ONLY | PUBLIC (public only if owner isPublic and chooses)
+  - goalType: "POINTS" | "CHECKINS" | "HOURS" (start with POINTS + CHECKINS if you want simpler)
+  - goalTarget (number)
+  - startDateISO, endDateISO (optional)
+  - createdAt
+- ProjectMember
+  - id
+  - projectId
+  - userId
+  - role: OWNER | MEMBER
+  - status: INVITED | ACTIVE | LEFT
+  - joinedAt
+- ProjectHabitLink
+  - id
+  - projectId
+  - habitId
+  - userId (the habit belongs to this user)
+  - contributionWeight (default 1)
+  - contributionUnit: "CHECKIN" (for now)
+- ProjectContribution (derived or stored)
+  - id
+  - projectId
+  - userId
+  - dateISO
+  - amount (number)
+  - sourceType: HABIT_CHECKIN
+  - sourceId (habitLogId)
+  - createdAt
+You can compute contributions on the fly from HabitLogs via joins, but storing can simplify analytics. Choose one approach and be consistent.
+
+PROJECT GOALS AND PROGRESS
+Minimum viable: CHECKINS based goal.
+- Each completed habit check in that is linked to a project adds contributionWeight points to the project for that day.
+- Project progress = sum(contributionWeight for all members’ completed linked habits in date range)
+- Show:
+  - total progress vs goalTarget
+  - progress over time (daily line chart)
+  - member leaderboard (who contributed most this week/month)
+  - per member breakdown
+
+PROJECT UX (MOBILE FIRST)
+Add a “Projects” tab in bottom nav (or place inside Today and Buddies as a section).
+Screens:
+1) Projects list
+- personal projects
+- shared projects
+- quick add button
+
+2) Project detail
+- header: name, goal, progress ring / bar, date range
+- “Today’s contributions” section
+- Members list with avatars
+- Leaderboard (simple)
+- Linked habits (grouped by member)
+- Chart: daily project progress (line)
+
+3) Create project wizard (in app flow)
+- Step 1: name + description + choose personal vs shared
+- Step 2: define goal:
+  - “Complete X check ins as a group” (goalTarget)
+  - choose timeframe (this week, this month, custom)
+- Step 3: add habits to project
+  - for personal projects: select from your habits, set weights
+  - for shared projects: you add your habits now, later members add theirs
+- Step 4: invite members (buddies or public discoverable users)
+- Step 5: confirm and create
+
+MEMBER JOIN FLOW
+- Project invitations behave like buddy invites:
+  - Invite by buddy list or username search (public)
+  - Member accepts and becomes ACTIVE
+- After joining, show a prompt:
+  - “Link one or more of your habits to this project” with weights
+
+HABITS ORGANISATION
+- Update habit model to optionally belong to a project category tag for filtering, but the true linkage for contribution is via ProjectHabitLink.
+- In the Monthly Habits view, allow filtering by Project.
+- On Today view, show habits grouped by Project optionally.
+
+C) WIZARD TO EXPLAIN DISCOVERY + PROJECTS + SHARED GOALS
+Extend the existing onboarding wizard (or add a “Projects tour” that triggers after onboarding).
+
+NEW WIZARD CONTENT REQUIREMENTS
+- Must explain, in plain language, with examples:
+  - Public profile: what it means, what is shown, how to turn it off
+  - Discover: how to find buddies by username
+  - Projects: organise habits into goals
+  - Shared projects: everyone can have different habits, but all contributions roll up to the shared goal
+- Use a guided tour style with spotlight + bottom sheet instructions.
+- Include a short interactive demo:
+  - Create a sample project “Health and Fitness”
+  - Set a group goal (e.g. 60 check ins this month)
+  - Link one habit (e.g. Gym) with weight 1
+  - Show how ticking Gym today increases both personal progress and project progress
+  - Show where a buddy would see the shared project progress and leaderboard
+- If the user skips, add a banner: “Set up your first shared project”.
+
+IMPLEMENTATION DETAILS FOR WIZARD
+- Add data-tour anchors in:
+  - Public profile toggle
+  - Discover search bar
+  - Projects tab
+  - Create project button
+  - Project goal panel
+  - Link habit selector
+  - Project progress bar/ring
+- Persist wizard progress in DB (same onboardingState mechanism).
+- Ensure steps auto advance when conditions are met (e.g. project created, habit linked).
+
+ACCEPTANCE CRITERIA
+- A user can opt into public discovery and be found via username search.
+- Another user can send a buddy request from discovery and it behaves like existing buddy invites.
+- A user can create personal projects and assign/link habits to them.
+- A user can create shared projects, invite members, and each member can link their own habits.
+- When members tick off linked habits, shared project progress updates correctly and is visible to all members.
+- The wizard clearly teaches this with an interactive flow and spotlight UI.
+
+DELIVERABLES
+- DB migrations (Prisma) for the new tables and fields
+- New API endpoints for discovery search, project CRUD, project invites, linking habits, project progress query
+- Mobile first UI for discovery and projects
+- Updated onboarding / projects wizard steps file and controller logic
+- README updates explaining public discovery, projects, and shared goals mechanics
+
+Build this in a clean, production ready way, starting with data model and API, then UI, then wizard.

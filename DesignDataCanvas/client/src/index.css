@@ -1,0 +1,403 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* E-INK ANIMATIONS */
+@keyframes refresh {
+  0%, 100% { opacity: 1; }
+  5% { opacity: 0.9; }
+  10% { opacity: 0.7; }
+  15% { opacity: 1; }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92%, 94%, 96% { opacity: 0.85; }
+  93%, 95%, 97% { opacity: 1; }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pixelate {
+  0% {
+    background-size: 1px 1px;
+  }
+  50% {
+    background-size: 2px 2px;
+  }
+  100% {
+    background-size: 1px 1px;
+  }
+}
+
+:root {
+  /* MONOCHROME PALETTE WITH HIGHLIGHTER ACCENT */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 40%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --border: 0 0% 85%;
+  --input: 0 0% 90%;
+  
+  /* HIGHLIGHTER ACCENT COLOR */
+  --highlighter: 73 100% 60%; /* Electric lime highlighter */
+  
+  /* MOSTLY MONOCHROME WITH ACCENT COLOR */
+  --primary: 0 0% 0%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 0 0% 0%;
+  --accent: 73 100% 60%; /* Using our highlighter as accent */
+  --accent-foreground: 0 0% 0%;
+  
+  --destructive: 0 0% 30%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 73 100% 60%;
+  --radius: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: none;
+    image-rendering: pixelated;
+    animation: flicker 12s infinite;
+    position: relative;
+    letter-spacing: -0.01em;
+    overflow-x: hidden;
+  }
+
+  /* E-INK TEXTURE EFFECT */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* SCANLINE EFFECT */
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to bottom, 
+      rgba(0,0,0,0.05), 
+      rgba(0,0,0,0) 50%, 
+      rgba(0,0,0,0.02) 80%, 
+      rgba(0,0,0,0.05)
+    );
+    z-index: 9999;
+    pointer-events: none;
+    animation: scanline 8s linear infinite;
+    opacity: 0.2;
+  }
+
+  /* AGGRESSIVE TYPOGRAPHY SYSTEM */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'VT323', monospace;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  h1 {
+    font-size: 4rem;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+  }
+
+  p, a, button, input, textarea {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+  }
+
+  /* SPECIFIC ELEMENT STYLES */
+  .eink-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* CARD SYSTEM WITH PIXEL PRECISION */
+  .eink-card {
+    background-color: hsl(var(--background));
+    border: 1px solid hsl(var(--foreground));
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .eink-card:hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--foreground));
+  }
+
+  .eink-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='0.5' fill='%23000' fill-opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* GRID EFFECTS */
+  .eink-grid {
+    display: grid;
+    position: relative;
+  }
+
+  .eink-grid::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 L20 0 L20 20 L0 20 Z' fill='none' stroke='%23000' stroke-width='0.5' stroke-opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* DIVIDERS */
+  .eink-divider {
+    height: 1px;
+    width: 100%;
+    background-color: hsl(var(--foreground));
+    position: relative;
+  }
+
+  .eink-divider::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-image: url("data:image/svg+xml,%3Csvg width='6' height='1' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0.5 H6' stroke='%23000' stroke-dasharray='1 1' stroke-width='0.7'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* BUTTONS WITH PIXEL ACCURACY */
+  .eink-btn {
+    position: relative;
+    display: inline-block;
+    font-family: 'VT323', monospace;
+    text-transform: uppercase;
+    font-size: 1.25rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--foreground));
+    cursor: pointer;
+    transition: all 0.1s ease;
+    overflow: hidden;
+  }
+
+  .eink-btn:hover, .eink-btn:focus {
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+
+  .eink-btn::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='3' height='3' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='1' fill='currentColor' fill-opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .eink-btn-primary {
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--background));
+    box-shadow: 4px 4px 0 hsl(var(--accent));
+  }
+
+  .eink-btn-primary:hover, .eink-btn-primary:focus {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    box-shadow: 2px 2px 0 hsl(var(--accent));
+    transform: translate(2px, 2px);
+  }
+  
+  .eink-btn-accent {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--foreground));
+  }
+  
+  .eink-btn-accent:hover, .eink-btn-accent:focus {
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--accent));
+  }
+  
+  .highlighter {
+    position: relative;
+    display: inline;
+  }
+  
+  .highlighter::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 0.4em;
+    background-color: hsla(var(--accent), 0.4);
+    z-index: -1;
+  }
+  
+  .accent-border {
+    border-color: hsl(var(--accent)) !important;
+  }
+  
+  .accent-text {
+    color: hsl(var(--accent));
+  }
+  
+  /* Dashboard specific styles */
+  .dashboard-outline {
+    border: 3px dashed hsl(var(--foreground));
+    background-color: hsla(var(--accent), 0.05);
+    transition: all 0.3s ease;
+    min-height: 600px;
+    height: 600px;
+    overflow-y: auto;
+  }
+  
+  .dashboard-outline-active {
+    border: 3px solid hsl(var(--accent));
+    background-color: hsla(var(--accent), 0.1);
+    box-shadow: 0 0 0 1px hsla(var(--accent), 0.5);
+  }
+  
+  .chart-container {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    max-height: 400px;
+  }
+  
+  .chart-container:hover {
+    box-shadow: 0 0 0 2px hsla(var(--accent), 0.3);
+    z-index: 1;
+  }
+  
+  .chart-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    aspect-ratio: 4/3;
+    width: 100%;
+  }
+  
+  .drag-placeholder {
+    border: 2px dashed hsl(var(--accent));
+    background-color: hsla(var(--accent), 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px hsla(var(--accent), 0.3);
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { 
+      opacity: 0.7;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% { 
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+  }
+
+  /* BLINK CURSOR */
+  .eink-cursor {
+    display: inline-block;
+    width: 0.5em;
+    height: 1em;
+    background-color: currentColor;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+
+  /* GLITCH TEXT EFFECT */
+  .eink-glitch {
+    position: relative;
+    animation: refresh 7s infinite;
+  }
+
+  /* PIXELATED IMAGE */
+  .eink-image {
+    image-rendering: pixelated;
+    filter: grayscale(100%) contrast(1.2);
+  }
+
+  /* SCREEN REFRESH ANIMATION */
+  .screen-refresh {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: hsl(var(--foreground));
+    z-index: 9999;
+    animation: refresh 1.5s ease-out forwards;
+  }
+
+  /* COMPONENTS */
+  .pixel-grid {
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='16' height='16' fill='none' stroke='%23000' stroke-opacity='0.03' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+}

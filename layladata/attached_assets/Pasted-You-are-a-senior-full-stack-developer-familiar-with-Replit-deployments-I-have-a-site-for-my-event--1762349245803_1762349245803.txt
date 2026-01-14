@@ -1,0 +1,77 @@
+You are a senior full-stack developer familiar with Replit deployments.
+
+I have a site for my event **Layla** deployed on Replit at `layladata.com` (backed by a `.replit.app` app). There is a form on the landing page with these fields:
+
+- Name
+- Email
+- Role
+- Company
+- "What do you work on with data or AI?"
+- "Who would you love to meet in the room?"
+
+I need you to:
+
+1. Inspect the current code
+   - Look through the project files and find:
+     - The HTML that defines the form.
+     - Any backend code (Python, Node, etc) that might already be handling form submissions.
+   - Identify:
+     - The current **stack** (for example, static HTML only, Flask app, Node / Express, etc).
+     - Whether the form currently has:
+       - a `method` attribute, and
+       - an `action` URL that points to any backend endpoint.
+
+   - Summarise in 3–5 bullet points how the form is currently wired (or not wired).
+
+2. Decide on the simplest working approach on Replit
+   - I do NOT need anything fancy.
+   - I want:
+     - Submissions to be stored somewhere I can check (for example, Replit Database or a simple JSON / CSV file).
+     - Optionally, a console log or very simple admin endpoint so I can see that it works.
+   - Choose the simplest approach that:
+     - Fits the existing language / stack.
+     - Does NOT introduce heavy frameworks.
+     - Works on Replit’s deployment model.
+
+   Examples of acceptable approaches:
+   - If it is a Python / Flask app:
+     - Add a `/submit` route that:
+       - Accepts POSTed form data,
+       - Stores it in Replit Database or appends to a local JSON file,
+       - Returns a simple thank-you page or message.
+   - If it is Node / Express:
+     - Similar: a POST route and write to a JSON file or Replit Database.
+   - If it is completely static:
+     - You may add a tiny backend (for example, a minimal Flask or Express server) and adjust the deployment accordingly, OR
+     - Integrate a simple form handling service (Formspree, Getform, etc) if that is easier. If you choose a third-party service, explain exactly where I paste the endpoint URL.
+
+3. Implement the solution
+   - Update the HTML to:
+     - Set `method="POST"`,
+     - Set `action` to the correct path (for example, `/submit`).
+   - Add the backend handler code:
+     - Parse the form fields.
+     - Store the submission in a persistent way.
+   - Make sure:
+     - You handle basic errors safely.
+     - You do not expose any secrets.
+   - After implementing, show me all changed files in full.
+
+4. Explain how to view submissions
+   - In clear, numbered steps, explain:
+     - Where submissions are being stored (for example, Replit Database keys, a file path, an admin route).
+     - How I can check them inside Replit (for example, using the Database GUI, printing from the console, or visiting a specific route).
+   - Add a brief note to the code as a comment or to a README section so future me knows where to look.
+
+5. Test instructions
+   - Describe how I can test the form end-to-end on the deployed site:
+     - What URL to visit.
+     - What to submit.
+     - Where to look to confirm that the submission has been received.
+
+Constraints:
+- Keep everything as minimal as possible.
+- Do not add user authentication, spam filters, or admin dashboards.
+- Do not introduce heavy dependencies beyond what the current stack already uses unless absolutely necessary.
+
+Please start by summarising the current state of the form wiring, then propose your chosen approach in 3–4 bullets, and then show the code changes.

@@ -1,0 +1,51 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background elements -->
+  <path d="M32 150C32 83.7258 85.7258 30 152 30H248C314.274 30 368 83.7258 368 150V150C368 216.274 314.274 270 248 270H152C85.7258 270 32 216.274 32 150V150Z" fill="#F7F9FC" stroke="#E4E9F0" stroke-width="2"/>
+
+  <!-- Dashboard elements -->
+  <rect x="60" y="70" width="120" height="90" rx="6" fill="white" stroke="#E4E9F0" stroke-width="2"/>
+  <rect x="70" y="85" width="100" height="8" rx="4" fill="#E4E9F0"/>
+  <rect x="70" y="100" width="80" height="8" rx="4" fill="#E4E9F0"/>
+  <rect x="70" y="115" width="100" height="35" rx="4" fill="#EBF4FF"/>
+  
+  <rect x="220" y="70" width="120" height="90" rx="6" fill="white" stroke="#E4E9F0" stroke-width="2"/>
+  <rect x="230" y="85" width="100" height="8" rx="4" fill="#E4E9F0"/>
+  <rect x="230" y="100" width="80" height="8" rx="4" fill="#E4E9F0"/>
+  <circle cx="280" cy="130" r="20" fill="#F2F3F5" stroke="#E4E9F0" stroke-width="2"/>
+  <path d="M272 130L278 136L288 126" stroke="#0057D2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <rect x="60" y="180" width="280" height="60" rx="6" fill="white" stroke="#E4E9F0" stroke-width="2"/>
+  <rect x="80" y="195" width="240" height="8" rx="4" fill="#E4E9F0"/>
+  <rect x="80" y="215" width="180" height="8" rx="4" fill="#E4E9F0"/>
+  
+  <!-- Person with chart -->
+  <g transform="translate(300, 185) scale(0.6)">
+    <!-- Person -->
+    <path d="M70 120C81.0457 120 90 111.046 90 100C90 88.9543 81.0457 80 70 80C58.9543 80 50 88.9543 50 100C50 111.046 58.9543 120 70 120Z" fill="#000000"/>
+    <path d="M70 130C42 130 20 152 20 180H120C120 152 98 130 70 130Z" fill="#000000"/>
+    
+    <!-- Chart/Sign -->
+    <rect x="10" y="20" width="80" height="60" rx="4" fill="white" stroke="#000000" stroke-width="2"/>
+    <line x1="20" y1="40" x2="80" y2="40" stroke="#000000" stroke-width="2"/>
+    <line x1="20" y1="60" x2="80" y2="60" stroke="#000000" stroke-width="2"/>
+    <line x1="40" y1="30" x2="40" y2="70" stroke="#000000" stroke-width="2"/>
+    <line x1="60" y1="30" x2="60" y2="70" stroke="#000000" stroke-width="2"/>
+    
+    <!-- Connecting line from person to chart -->
+    <path d="M60 80C40 60 30 40 50 30" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Person with magnifying glass -->
+  <g transform="translate(40, 185) scale(0.6)">
+    <!-- Person -->
+    <path d="M70 120C81.0457 120 90 111.046 90 100C90 88.9543 81.0457 80 70 80C58.9543 80 50 88.9543 50 100C50 111.046 58.9543 120 70 120Z" fill="#000000"/>
+    <path d="M50 130C22 130 0 152 0 180H100C100 152 78 130 50 130Z" fill="#000000"/>
+    
+    <!-- Magnifying glass -->
+    <circle cx="110" cy="40" r="20" fill="white" stroke="#000000" stroke-width="2"/>
+    <line x1="95" y1="55" x2="85" y2="65" stroke="#000000" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Connecting hand -->
+    <path d="M80 90C90 70 100 60 95 55" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

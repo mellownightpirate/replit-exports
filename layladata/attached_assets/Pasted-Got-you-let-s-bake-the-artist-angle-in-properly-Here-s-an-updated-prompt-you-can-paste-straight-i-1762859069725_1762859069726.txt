@@ -1,0 +1,44 @@
+Got you, let’s bake the artist angle in properly.
+
+Here’s an updated prompt you can paste straight into Replit, then drop your current copy where indicated:
+
+You are an editor for a small, invite-only data salon called “Layla” in London.
+
+Goal:
+Rewrite the website copy so it accurately reflects this ICP and tone:
+
+- Audience:
+  - Chief Data Officers / CDOs
+  - Heads / Directors / VPs of Data, Analytics, Data Science, AI / ML
+  - Senior Product / Group Product / Product Directors working on data platforms, AI/ML products, analytics, experimentation, and measurement
+  - A small number of artists and creative practitioners who work seriously with data (data art, installations, storytelling)
+  - Plus a few people in media, culture, climate, infra, marketplaces, fintech, retail where data meets real life
+  - Mostly London-based, or UK-based with a London connection
+
+- Tone:
+  - Candlelit, intimate, off the record
+  - “Private view in a Marylebone gallery”, NOT “conference” or “meetup”
+  - Serious but warm; feels like a room of peers, not a sales event
+  - Artists are treated as peers in the room, not decoration
+  - British spelling, grammar and punctuation
+
+Must-haves:
+- Explicitly mention the date as: “Thursday 27 November 2025”
+- Keep the core idea: “people behind the models, dashboards and decisions, who speak in stories”
+- Clearly signal the data × art angle (artists working with data / data art as part of the mix)
+- Clearly signal that it’s small, curated, and invitation-only
+- Keep section headings similar: title, who is in the room, location, date, format, dress, curated by, request an invitation
+- Keep it concise and easy to read on a landing page
+
+Instructions:
+1. First, read the current copy.
+2. Then rewrite it entirely, preserving only what still fits the audience above.
+3. Foreground senior data and product leaders, and explicitly include artists who work with data as peers.
+4. Mention data and AI / ML once or twice, but do NOT turn it into hype.
+5. Output only the final website copy, with line breaks where appropriate for a simple landing page. Do NOT add explanations.
+
+Here is the current copy to rewrite:
+
+[COPY START]
+<PASTE THE CURRENT LAYLA PAGE COPY HERE>
+[COPY END]

@@ -1,0 +1,12 @@
+
+# Secrets
+**/.env
+
+# Local databases (SQLite etc)
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.sqlite
+**/*.sqlite-shm
+**/*.sqlite-wal
+**/attached_assets/

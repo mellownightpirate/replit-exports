@@ -1,0 +1,189 @@
+You are a senior full stack engineer. Take the existing Next.js (App Router) + TypeScript + Tailwind + Zustand strategy game codebase and upgrade it into a 2-player, turn-based, asymmetric multiplayer game where progress is saved, players can log in, and both players’ choices are intrinsically tied to one shared enterprise simulation.
+
+High level goal
+- Two players share one “run” (one enterprise data estate).
+- Player A is the Solutions Architect (builder).
+- Player B is the Prospect or Customer Stakeholder (counterparty).
+- Both players act each turn, their actions combine into one resolved simulation outcome.
+- The Prospect role is dynamically assigned and opposing, it must present different powers and incentives than the Architect.
+
+Tech requirements
+- Keep Next.js App Router, TypeScript, Tailwind.
+- Add a minimal backend inside the same Next.js app.
+- Add persistent storage for users, rooms, game state, and action logs.
+- Use Prisma with SQLite for simplicity in Replit (single file DB). Store game state as JSON.
+- Add server-side turn authority (the server is the source of truth).
+- Add real-time sync with Socket.IO (preferred), fallback to polling if WebSockets fail.
+- Keep deterministic simulation (seeded RNG), the seed is stored per room, events are drawn at turn start by the server.
+
+Authentication (prototype-grade but real login)
+- Implement simple auth with email + password.
+- Hash passwords with bcrypt.
+- Use secure sessions with httpOnly cookies (iron-session or similar lightweight session library).
+- Pages required:
+  - /login
+  - /register
+  - /lobby (list rooms, create room, join room by code)
+  - /room/[roomId] (the game)
+
+Core multiplayer concepts
+1) Room
+- A room is one shared campaign instance.
+- It has a room code, scenario preset, seed, currentTurn, phase, and status (waiting, active, finished).
+- Creating a room sets the creator as Architect by default.
+- When another user joins, they become Prospect automatically. If a third user tries to join, block (MVP is strictly 2 players).
+
+2) Roles (asymmetric, opposing)
+Architect (Solutions Architect)
+- Powers: deploy capabilities, enablement, governance policy, performance tuning, incident response.
+- Resources: political capital, time budget (actions per turn), budget (cost ceiling).
+- Goal: hit win conditions by Turn 12 (Adoption, Trust, Governance, Reliability, Latency, Cost).
+
+Prospect (Customer stakeholder)
+- Powers: impose constraints, request proof, gate approvals, push priorities, escalate risks, demand features.
+- The Prospect does NOT “deploy product”. Instead they shape the environment the Architect must succeed within.
+- Example Prospect actions:
+  - Tighten security requirements (raises governance requirement, reduces adoption speed, increases friction).
+  - Freeze changes for 1 turn (change freeze window).
+  - Demand AI search now (forces early Simba Intelligence scope pressure, trust risk if governance weak).
+  - Deny access to a domain until justification is provided (blocks connectivity edge).
+  - Cap budget (forces FinOps optimisation).
+  - Request audit evidence (forces audit trail readiness).
+  - Sponsor enablement (boost adoption if the Architect invested in training assets).
+- Prospect resources:
+  - Patience (declines if value is not demonstrated).
+  - Risk tolerance (drops after incidents or governance gaps).
+  - Budget flexibility (can approve more spend if trust is high).
+- Prospect win condition (separate, not identical to Architect):
+  - By Turn 12, “Business Value” score >= target and “Risk” score <= target.
+  - Or force a “No Decision” / “Veto” outcome if trust collapses or compliance fails.
+  - Important: This is not a pure sabotage role, it is a realistic buyer role, they want success but will block unsafe approaches.
+
+Turn structure and phases (server enforced)
+- Each turn has phases and both players must submit before the turn resolves.
+
+Phase 1: Event Briefing (server draws event at start of turn and stores it)
+- Both players see the same event card plus story flavour.
+- Some events may give the Prospect a special response option.
+
+Phase 2: Planning
+- Architect chooses up to 2 actions.
+- Prospect chooses 1 action (or 2 in some scenarios) from a dynamic set based on state.
+
+Phase 3: Commit
+- Each player can edit their planned actions until they press “Submit Turn”.
+- Undo requirement in multiplayer:
+  - Undo is allowed only before submitting (client-side within the planning phase).
+  - After submit, actions are locked.
+  - After both submit, the server resolves and advances to next turn.
+
+Phase 4: Resolve
+- The server applies both players’ actions in a deterministic order:
+  1) Prospect constraints and gates
+  2) Architect deployments and improvements (with any constraints applied)
+  3) Event effects
+  4) End-of-turn simulation deltas
+- The server writes a TurnResult record (metrics deltas, explanation strings, notable outcomes).
+- Broadcast updated state to both clients (Socket.IO).
+
+Phase 5: Review
+- Both players see a “Turn Report” summarising what happened, why, and what changed.
+- Then a “Continue” button advances to next turn (either both click, or a short auto-advance, pick the simplest).
+
+Data model (Prisma)
+Implement tables roughly like:
+- User: id, email, passwordHash, createdAt
+- Room: id, code, scenarioId, seed, status, currentTurn, phase, createdAt, updatedAt
+- Player: id, roomId, userId, role (ARCHITECT | PROSPECT), joinedAt
+- GameState: roomId (unique), stateJson (full state), version (int), updatedAt
+- Turn: id, roomId, turnNumber, eventJson, status (PLANNING | RESOLVED), resolvedAt
+- PlannedAction: id, roomId, turnNumber, userId, role, actionsJson, submittedAt
+- ActionLog: id, roomId, turnNumber, role, actionJson, createdAt
+- TurnResult: id, roomId, turnNumber, resultJson, createdAt
+
+Concurrency and safety
+- Use optimistic locking with GameState.version and room.currentTurn.
+- Reject out-of-date submissions with a clear UI message and refresh.
+- Only the server can advance turns.
+
+Dynamic opposing role selection (must feel “intrinsically tied”)
+- The Prospect action choices must be generated based on current metrics and what the Architect has deployed.
+- Examples:
+  - If Governance < 60 and Adoption > 60, Prospect gets a “Security escalation” action that increases compliance pressure next turn.
+  - If Cost is high, Prospect gets “Budget cap enforcement” action that reduces allowed spend and increases penalty for cost spikes.
+  - If Trust is low, Prospect gets “Audit request” or “Pause rollout” actions.
+  - If Reliability is low, Prospect gets “SLA mandate” action that raises reliability target.
+  - If the Architect is going too slowly and value is low, Prospect gets “Executive deadline” action that increases adoption pressure but reduces patience.
+- This should not be random chaos, it should look like realistic buyer behaviour.
+
+UI updates required
+Lobby
+- Create room (choose scenario)
+- Join room by code
+- Room list showing status (waiting for opponent, active, finished)
+
+Room screen
+- Show both players, roles, and turn phase.
+- Architect view shows: map, node panel, deploy actions.
+- Prospect view shows: stakeholder dashboard and constraint actions, plus a simplified map overview (read-only is fine).
+- Both views show shared metrics bar and Mission Brief.
+- Add a “Turn planning” panel with:
+  - Your planned actions
+  - Edit actions
+  - Submit turn
+  - Waiting indicator for the other player
+
+Turn report
+- Summary of actions taken by both roles
+- Metric changes
+- Key consequences and story flavour
+- Next recommended guidelines (coach tips)
+
+Optional but valuable
+- Add a lightweight in-room chat (Socket.IO) for negotiation, stored per room as last 50 messages (optional, keep minimal).
+
+Simulation updates
+- Extend the simulation engine to accept multiple actors and constraints.
+- Add new metrics required for Prospect:
+  - BusinessValue (0–100) derived from Adoption, Time-to-insight, and domain coverage.
+  - Risk (0–100) derived from Governance gaps, incidents, and trust drops.
+  - Patience (0–100) declines when value is not progressing or when incidents occur.
+- Prospect can “win” by:
+  - Achieving BusinessValue >= 75 and Risk <= 35 by Turn 12 (successful evaluation outcome), OR
+  - Triggering “No Decision” outcome if Patience <= 0, OR
+  - Triggering “Veto” if Governance <= 20 while Adoption >= 60, OR
+  - Triggering “Trust collapse” if Trust <= 15 (shared loss condition).
+- Architect can “win” by the original win conditions by Turn 12.
+- Also add a shared “Mutual Success” outcome if both win, this should be the ideal ending.
+
+Seeded RNG and determinism
+- All randomness must occur on the server and be derived from room.seed + turnNumber.
+- The event is drawn at turn start and stored, clients just render it.
+- Ensure replayability and that reconnecting shows exactly the same state.
+
+Implementation checklist
+1) Add Prisma + SQLite, define schema, run migrations.
+2) Implement auth: register, login, session middleware, logout.
+3) Build room API: createRoom, joinRoom, getRoomState.
+4) Implement Socket.IO server in Next.js and client hook:
+   - join room channel
+   - broadcast state updates
+5) Move turn resolution to server:
+   - submit planned actions endpoint
+   - resolveTurn endpoint (auto-called when both submitted)
+6) Update UI for lobby and role-specific room views.
+7) Update README with:
+   - how to run
+   - how to create and join a room
+   - the turn phases
+   - how determinism works
+   - known prototype limitations
+
+Acceptance criteria
+- Two users can register, log in, create a room, join via code, and play a full 12-turn run together.
+- State persists across refreshes and reconnects.
+- Both players’ actions affect shared outcomes every turn.
+- Prospect role is dynamically opposing and feels like a real customer stakeholder, not a random saboteur.
+- The game remains minimal, stable, and understandable.
+
+Now implement these multiplayer features in the existing codebase.

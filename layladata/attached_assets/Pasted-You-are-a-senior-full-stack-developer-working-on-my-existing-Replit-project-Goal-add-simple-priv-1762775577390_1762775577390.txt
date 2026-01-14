@@ -1,0 +1,46 @@
+You are a senior full-stack developer working on my existing Replit project.
+
+Goal: add simple, privacy-friendly tracking to my website WITHOUT using any external/third-party analytics services (no Google Analytics, Plausible, etc).
+
+Please:
+1. Inspect the existing project and identify the tech stack (frontend + backend).
+2. Implement a **first-party analytics system** with the following features:
+   - Track **page views**: URL, timestamp, referrer (if available), user agent, and a simple anonymous session ID.
+   - Track **click events** on key elements (e.g. navigation links, buttons with data-track or a specific CSS class).
+   - Track **time on page** using a simple “page opened” and “page closed/unload” approach or periodic heartbeats.
+3. Data storage:
+   - Use a lightweight solution already suitable for Replit:
+     - Prefer **SQLite** if a database already exists or is easy to add, 
+     - Otherwise fall back to a local JSON/NDJSON log file.
+   - Make sure writes are efficient and won’t crash in a small-traffic environment.
+4. Implementation details:
+   - Add a small frontend JavaScript module that:
+     - Generates a simple anonymous session ID (no personally identifiable information).
+     - Sends events (page_view, click, heartbeat) to a backend endpoint via `fetch`.
+   - On the backend:
+     - Expose an `/analytics/event` route (POST) that accepts these events and stores them.
+     - Ensure this route is not publicly indexable (e.g. no HTML view there, just JSON).
+5. Reporting UI:
+   - Create a simple **/analytics** dashboard page:
+     - Protect it with a basic auth or password read from an environment variable (e.g. `ANALYTICS_PASSWORD`).
+     - Show:
+       - Total visits and unique session count.
+       - Top pages by views.
+       - Simple list or table of recent events.
+       - Optional: basic charts if easy using a small in-browser library or plain HTML tables.
+6. Environment & privacy:
+   - Do NOT introduce any external tracking scripts or pixels.
+   - Avoid cookies if possible. If you must use cookies, only for an anonymous session ID.
+   - Disable tracking automatically in development mode if you can detect it, or provide a simple flag to turn tracking on/off.
+7. Documentation:
+   - Comment the code clearly.
+   - At the end, write a short README section explaining:
+     - How the tracking works.
+     - How to set the analytics password.
+     - Where the data is stored.
+     - How to view the /analytics dashboard.
+
+Please now:
+- Make the necessary code changes,
+- Show me all new or modified files,
+- And explain briefly how to test that tracking is working.

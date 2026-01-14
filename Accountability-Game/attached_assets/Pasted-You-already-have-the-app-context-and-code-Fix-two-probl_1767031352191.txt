@@ -1,0 +1,101 @@
+You already have the app context and code. Fix two problems:
+
+1) I CANNOT NAVIGATE TO A BUDDY DETAIL PAGE TO MARK “SEEN/WATCHING”
+Current behaviour: in the Buddies area, I only see reactions, I cannot open a buddy detail page where I can view their Anchors for a day and mark them as Seen/Watching.
+
+Goal: Buddy list items must be tappable and open a Buddy Detail screen. On that screen I can:
+- Select a date (default today)
+- See the buddy’s Anchors for that date
+- See which Anchors are completed
+- For each completed Anchor, I can mark it as Seen (eye icon) (and optionally Watching if that concept exists)
+- The UI must not be just “reactions”, it must support the explicit Seen interaction on individual Anchor check ins.
+
+Implementation requirements
+A) Routing/navigation
+- Ensure there is a stable route like /buddies/[buddyUserId] (or /buddy/[username]) that works on both mobile and desktop.
+- In the Buddies list, clicking/tapping a buddy card must navigate to that route.
+- If you already have this route, fix whatever is blocking navigation (wrong link, overlay intercepting taps, z-index issues, disabled pointer-events, or missing router push).
+- Add a visible “View details” affordance on the buddy card (chevron or button) to make it obvious.
+
+B) Buddy detail screen content
+- Top header: buddy name, avatar, and status (buddy/public).
+- Date selector: today, yesterday, pick date.
+- Anchors list:
+  - For each Anchor, show name (or “Completed Anchor” if titles hidden) and completion state for that date.
+  - If completed, show a Seen toggle (eye icon) that updates immediately.
+  - If not completed, Seen is disabled.
+- Show existing reactions separately if they exist, but do not replace Seen functionality.
+
+C) Seen/Watching logic
+- If the app uses “Seen” per Anchor check in (AnchorLog), ensure the buddy detail page is wired to that:
+  - Fetch buddy anchorLogs for date with viewerHasSeen and seenCount/seenBy.
+  - Clicking Seen calls the correct API endpoint to toggle seen for that anchorLogId.
+- If “Watching” exists:
+  - Define it clearly. If it is just another acknowledgement type, implement it parallel to Seen (unique per anchorLogId and viewerUserId).
+  - If Watching is not implemented yet, remove the UI label and keep only Seen, to avoid confusion.
+
+D) Bug diagnosis checklist
+- Inspect the buddy card component for:
+  - pointer-events: none
+  - overlay div covering it
+  - incorrect Link href
+  - missing router push
+  - the buddy id being undefined
+- Verify the buddy detail route builds server-side and client-side in production.
+- Add a simple integration test or at least a manual test checklist.
+
+Acceptance criteria
+- From Buddies list, I can open a buddy detail page.
+- I can view their Anchors for today.
+- I can mark individual completed Anchors as Seen.
+- Changes persist on refresh.
+
+2) ADD NEW BUDDIES TO EXISTING CHATS
+Goal: In an existing chat thread (group chat), allow inviting additional buddies to join the chat.
+
+Clarify current model (assume you have DM or group chat)
+- If chats are 1:1 only today: upgrade to support group chats.
+- If group chats already exist: add “Add members” action.
+
+Data model
+- Chat
+  - id, createdAt, createdById, isGroup boolean, name nullable
+- ChatMember
+  - id, chatId, userId, role (ADMIN|MEMBER), joinedAt
+  - unique(chatId, userId)
+- Message
+  - id, chatId, senderId, content, createdAt
+
+Permissions
+- Only existing members can see the chat.
+- Only ADMIN (or the chat creator) can add members (start with creator only if simpler).
+- You can only add users who are:
+  - already your buddies OR
+  - public users you follow (optional) OR
+  - users you can search (if you have public discovery)
+Pick the simplest: buddies only.
+
+UI
+- In a chat screen, add a top-right menu: “Chat info”
+- Chat info shows members list and an “Add people” button.
+- Add people opens a picker (mobile bottom sheet) listing my buddies with search.
+- On confirm:
+  - create ChatMember rows
+  - post a system message: “Amin added Sara”
+- Newly added members can see message history (or only from join time). Pick one and implement:
+  - Simpler: they can see full history.
+
+API
+- POST /api/chats/:chatId/members with { userIds: [] }
+- GET /api/chats/:chatId returns chat + members
+- Ensure auth checks and membership checks.
+
+Acceptance criteria
+- I can open an existing chat, tap Chat info, add a buddy, and they appear in the members list.
+- Added buddy can access the chat and see messages.
+- Works on mobile and desktop.
+
+DELIVERABLES
+- Fixed buddy detail navigation and Seen toggling
+- Updated chat data model and UI to support adding members to existing chats
+- Migrations applied, and deployment updated so it works on https://accountability-game.replit.app/

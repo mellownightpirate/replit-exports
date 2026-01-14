@@ -1,0 +1,290 @@
+You are building a small full-stack web app for me to track *daily* health metrics. There is **no live or file-based connection to Apple Health**. After an initial CSV import, I will **type data in manually every day via the UI**.
+
+---
+
+## Stack & project structure
+
+Use:
+
+- **Backend**: Python 3, FastAPI, SQLAlchemy.
+- **Database**: SQLite (single file, for example `health.db`).
+- **Frontend**:  
+  - Single-page web UI served by FastAPI at `/`.  
+  - HTML + minimal CSS (Tailwind or plain CSS).  
+  - Vanilla JavaScript is fine.  
+  - Use Chart.js (or similar) for graphs.
+
+Provide a structure like:
+
+- `main.py` (FastAPI app and routes)
+- `database.py` (SQLAlchemy engine/session)
+- `models.py` (SQLAlchemy models)
+- `schemas.py` (Pydantic models)
+- `static/` and `templates/` or equivalent for the frontend
+- `import_initial_csv.py` (CLI script to import the initial CSV)
+
+---
+
+## Core goal
+
+Per **day**, I want to see:
+
+- steps  
+- bodyweight (kg)  
+- total calories burned  
+- total calories eaten  
+
+The app must:
+
+1. **Initialise the database** from a CSV export I already have (for dates from **1 September 2025** onwards).
+2. Then allow me to **manually add or edit values for each day via the web UI**, with no further CSV or Apple Health imports.
+3. Show **tables and charts** so I can see progress and calorie balance over time.
+
+---
+
+## Data model
+
+Create a table called `daily_metrics` with these columns:
+
+- `id` (integer primary key)
+- `date` (date, unique)
+- `steps` (integer, nullable)
+- `weight_kg` (float, nullable)
+- `calories_burned_total` (float, nullable)
+- `calories_burned_active` (float, nullable)
+- `calories_burned_basal` (float, nullable)
+- `calories_eaten` (float, nullable)
+- `created_at` (datetime)
+- `updated_at` (datetime)
+
+In the API responses, include a **computed field** (not stored in the DB):
+
+- `calorie_balance` = `calories_eaten - calories_burned_total`  
+  - Positive = surplus  
+  - Negative = deficit  
+
+Enforce **one row per date** in the database.
+
+---
+
+## Initial data import (CSV)
+
+Assume I will upload or place in the project root a CSV file called:
+
+`amin_daily_energy_merged_steps_from_sheet.csv`
+
+with columns exactly:
+
+- `DATE` (string, `YYYY-MM-DD`)  
+- `steps`  
+- `weight_kg`  
+- `total_burned_kcal`  
+- `calories_eaten`  
+- `active_kcal`  
+- `basal_kcal`
+
+Create a script `import_initial_csv.py` that:
+
+1. Connects to `health.db` using the same SQLAlchemy models.
+2. Reads this CSV.
+3. Filters to rows where `DATE >= "2025-09-01"`.
+4. For each row, **upserts** into `daily_metrics`:
+
+   - `date` = `DATE`
+   - `steps` = `steps`
+   - `weight_kg` = `weight_kg`
+   - `calories_burned_total` = `total_burned_kcal`
+   - `calories_burned_active` = `active_kcal`
+   - `calories_burned_basal` = `basal_kcal`
+   - `calories_eaten` = `calories_eaten`
+
+   If a row for that `date` already exists, update its values. Otherwise, create a new row.
+
+5. Sets `created_at` and `updated_at` appropriately.
+
+I should be able to run the import with a simple command like:
+
+```bash
+python import_initial_csv.py
+after which the database is populated.
+
+API design (manual-only updates after import)
+After the initial CSV import, all changes come from the UI via the API.
+
+Implement the following endpoints:
+
+List metrics in a date range
+
+GET /api/daily-metrics?from=YYYY-MM-DD&to=YYYY-MM-DD
+
+Behaviour:
+
+Returns all daily_metrics rows between from and to inclusive, ordered by date.
+
+Each item includes:
+
+date
+
+steps
+
+weight_kg
+
+calories_burned_total
+
+calories_burned_active
+
+calories_burned_basal
+
+calories_eaten
+
+calorie_balance (computed)
+
+created_at
+
+updated_at
+
+Upsert a single day’s data
+
+POST /api/daily-metrics
+
+Request body (JSON):
+
+json
+Copy code
+{
+  "date": "2025-11-18",
+  "steps": 12000,
+  "weight_kg": 90.5,
+  "calories_burned_total": 2600,
+  "calories_burned_active": 800,
+  "calories_burned_basal": 1800,
+  "calories_eaten": 2400
+}
+Behaviour:
+
+If a row for date exists, update it.
+
+If it does not exist, create it.
+
+Return the full record including the computed calorie_balance.
+
+Optional: get a single day
+
+GET /api/daily-metrics/{date}
+Returns a single day’s record, or 404 if not found.
+
+Optional: delete a day
+
+DELETE /api/daily-metrics/{date}
+Deletes that day’s record (not essential, but helpful).
+
+Add basic validation:
+
+date must be a valid date string.
+
+Steps and calories must be non-negative numbers.
+
+Weight must be a reasonable positive number.
+
+Frontend / UI
+Serve a simple web UI at / that interacts with the API.
+
+The page should include:
+
+1. Date selector and input form
+At the top:
+
+A date picker that defaults to today.
+
+Inputs for:
+
+Steps (integer)
+
+Weight (kg, float)
+
+Total calories burned
+
+Active calories (optional)
+
+Basal calories (optional)
+
+Calories eaten
+
+A “Save” button that:
+
+Sends a POST /api/daily-metrics request with the form data.
+
+On success, refreshes the table and charts.
+
+If data already exists for that date:
+
+The form should load the existing values when I select that date, so I can edit them.
+
+2. Daily metrics table
+Below the form, show a table with one row per day, from 1 September 2025 up to today:
+
+Columns:
+
+Date
+
+Steps
+
+Weight (kg)
+
+Calories burned (total)
+
+Calories eaten
+
+Calorie balance (with a visual cue: green if negative/deficit, red if positive/surplus)
+
+Implement this by:
+
+Calling GET /api/daily-metrics?from=2025-09-01&to=<today> on page load and after saves.
+
+Rendering the returned data into the table.
+
+Optional nice-to-have:
+
+Click on a row in the table to populate the form with that date’s values for quick editing.
+
+3. Charts
+Use Chart.js (or similar) to provide at least:
+
+Weight over time
+
+Line chart with date on the x-axis, weight_kg on the y-axis.
+
+Calories eaten vs burned
+
+Line or bar chart with:
+
+calories_eaten
+
+calories_burned_total
+
+Calorie balance over time
+
+Bar chart with calorie_balance per day.
+
+The frontend should:
+
+Fetch data from /api/daily-metrics once (for the relevant date range).
+
+Populate both the table and the charts from that dataset.
+
+General requirements
+Use clear, well-structured Python modules and keep logic separated (models vs routes vs DB config).
+
+Add minimal but sensible error handling and HTTP status codes.
+
+Make the UI clean and readable; it does not need to be fancy.
+
+Include a short text section on the homepage with basic instructions:
+
+“Import your CSV by running python import_initial_csv.py once.”
+
+“Use the date selector and form above to update today’s values.”
+
+“The table and charts below show your progress since 1 September 2025.”
+
+Please now generate the complete project (backend, frontend, database setup, and import_initial_csv.py script) so that I can run it on Replit, import my CSV once, and then maintain my daily data manually through the web UI.

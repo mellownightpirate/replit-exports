@@ -1,0 +1,149 @@
+You already know the app codebase and stack. Implement the following features and fixes.
+
+PART 1: IN-APP NOTIFICATIONS FOR NEW MESSAGES (AND OTHER EVENTS)
+Goal: When I receive a new chat message, I get an in-app notification (badge + toast), and I can view notifications in a list and mark them read.
+
+Requirements
+1) Notification data model
+Create tables (Prisma or Drizzle, matching the current ORM):
+- Notification
+  - id
+  - userId (recipient)
+  - type (enum) e.g. MESSAGE_RECEIVED, PROJECT_INVITED, BUDDY_INVITED, ANCHOR_SEEN, ANCHOR_WATCHED, REACTION
+  - title
+  - body (short text)
+  - entityType (optional: "chat", "project", "anchorLog", etc.)
+  - entityId (optional)
+  - isRead boolean default false
+  - createdAt
+- NotificationDelivery (optional but recommended for dedupe and email)
+  - id
+  - notificationId
+  - channel (IN_APP, EMAIL)
+  - status (QUEUED, SENT, FAILED)
+  - dedupeKey (unique)
+  - createdAt
+
+2) UI
+- Add a bell icon in the top nav with unread badge count.
+- Notifications screen:
+  - list grouped by Today, Yesterday, Earlier
+  - tap opens the relevant screen (chat, project, buddy, anchor detail)
+  - mark read on open, plus “Mark all read”
+- For new message:
+  - show toast “New message from X” with “Open” action
+  - increment badge immediately
+
+3) Real time behaviour
+- Ensure notifications appear without refresh.
+- Use the simplest approach already compatible with the app:
+  - If you already use websockets for chat, reuse it to push notification events.
+  - If not, implement Server Sent Events (SSE) endpoint /api/notifications/stream, plus fallback polling every 20 seconds.
+- Update unread count live.
+
+Acceptance
+- When someone messages me, I see a toast and the bell badge increments.
+- Notifications list shows the message notification.
+- Clicking it opens the chat thread.
+
+PART 2: EMAIL NOTIFICATIONS (OUTSIDE THE APP) FOR IMPORTANT EVENTS
+Goal: Email the user (and only when sensible) for events like receiving a new message, and other key events. This should not spam and should avoid emails when the user is actively using the app.
+
+Requirements
+1) Track activity to infer “app not open”
+- Add User.lastSeenAt timestamp.
+- Add a lightweight heartbeat from the client every 30 to 60 seconds while the app is open: POST /api/me/heartbeat
+- If now - lastSeenAt > 5 minutes, treat as offline.
+
+2) Notification preferences
+Add NotificationPreferences per user:
+- emailMessages boolean default true
+- emailProjectInvites boolean default true
+- emailBuddyInvites boolean default true
+- emailDigestOnly boolean default false (optional)
+- quietHoursStart, quietHoursEnd (optional)
+Add a settings screen for these preferences.
+
+3) Email delivery
+- Implement email sending via a provider that works in Replit:
+  - Prefer Resend or SendGrid (API based), or Nodemailer SMTP if already set up.
+- Store provider key in Replit Secrets.
+- Create email templates (simple HTML) for:
+  - New message (include sender name and a button to open chat)
+  - Project invite (button to view invites)
+- Add throttling and dedupe:
+  - Do not email for every message if a conversation is active.
+  - Use a dedupe key like: EMAIL:MESSAGE_RECEIVED:chatId:recipientId:10minBucket
+  - Limit to max 1 email per chat per 10 minutes per recipient.
+- Queue email sends in DB (EmailQueue table) and process with a background worker:
+  - Run every 30 seconds via setInterval in the server process or a Replit scheduled job if available.
+  - Retry failures with backoff and stop after N tries.
+
+Acceptance
+- If I am offline (lastSeenAt older than 5 minutes), receiving a new message sends me an email.
+- If I am actively in the app, I get in-app notifications but no email spam.
+
+PART 3: PROJECT CREATION SHOULD SHOW OTHER USERS AND THEIR ANCHORS IN THE PROJECT
+Goal: When creating a project, I can pick users to invite and see which Anchors they have included in the project.
+
+Requirements
+1) Project membership and linking model
+Ensure the project system supports:
+- ProjectMember: (projectId, userId, status INVITED|ACTIVE)
+- ProjectAnchorLink: (projectId, userId, anchorId, weight, createdAt)
+
+2) UI in create project flow
+- In the “Invite members” step:
+  - show a user picker with search
+  - sources: my buddies + discoverable public users (if implemented)
+  - for each user card, show:
+    - display name, username
+    - “Anchors shared” indicator
+- After selecting a user, show a panel:
+  - “Anchors in this project”
+  - If user is not yet ACTIVE, show “Not linked yet (they will add after joining)”
+  - Once they accept, display their linked Anchors (read only list)
+- Also allow viewing a user’s general anchors list in the picker, but only if their privacy settings allow sharing anchors list.
+
+API
+- GET /api/projects/:projectId/members should include each member with:
+  - status
+  - linkedAnchors (list) if status ACTIVE and privacy allows
+  - otherwise linkedAnchors = [] and reason field
+
+Acceptance
+- I can see members and, after they join and link, I can see which Anchors they included.
+
+PART 4: FIX PROJECT INVITES VISIBILITY (INVITED USERS CANNOT SEE INVITES)
+Problem: Users invited to a project cannot find or see the project.
+
+Fix requirements
+1) Add an “Invites” screen
+- Show:
+  - Pending project invites
+  - Pending buddy invites (if relevant)
+- Each invite has Accept / Decline.
+- On accept:
+  - ProjectMember.status becomes ACTIVE
+  - create in-app notification “Joined project”
+  - optional email confirm
+
+2) Backend correctness
+- Ensure /api/projects for a user includes:
+  - Active projects (status ACTIVE)
+  - Invited projects (status INVITED) in a separate list or with a filter
+- Ensure authorisation allows INVITED members to fetch minimal project info (name, description, goal), so they can decide to accept.
+- Ensure the invite notification includes a deep link that works.
+
+Acceptance
+- If I invite a user to a project, they immediately see it under Invites.
+- Accepting the invite makes it appear in their Projects list.
+- They can open the project and link their anchors.
+
+DELIVERABLES
+- DB migrations
+- In-app notifications (bell + list + toasts) with real-time updates
+- Email notification system with lastSeenAt heuristic, throttling, and preferences
+- Project create UI improvements to show member anchor inclusion (post-join)
+- Project invites screen and backend fixes so invitees can see and accept projects
+- Deploy and verify on https://accountability-game.replit.app/

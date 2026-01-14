@@ -1,0 +1,160 @@
+The Health Metrics Tracker is working functionally, but the UI looks like a static Notion page: too much text, big “Step 1/2/3” headings, and long paragraphs. I want a cleaner, more app-like design that is visually appealing and easy to scan.
+
+Please MODIFY the Streamlit UI code (🏋️‍♂️_app.py and any related front-end helpers). Do not touch the core backend logic or database models. Focus on layout, styling and microcopy.
+
+========================================
+1. OVERALL STYLE
+========================================
+
+Goals:
+
+- Look like a modern web app dashboard, not a document.
+- Less explanatory text, more visual structure.
+- Clear primary focus on **today’s metrics and summary**.
+- Use cards, subtle backgrounds and spacing so the eye knows where to look.
+
+Visual guidelines:
+
+- Use a light grey page background and white card containers (e.g. via `st.container()` + `st.markdown` with simple CSS).
+- Use one accent colour (e.g. the existing orange) for key elements only: active tab, primary buttons, key numbers.
+- Use short headings, not long sentences.
+- Reduce bold paragraphs of text; prefer compact helper text or tooltips.
+
+========================================
+2. NEW PAGE LAYOUT (TODAY TAB)
+========================================
+
+Keep the same functionality but restructure **Today** into three horizontal bands:
+
+Top band – header + step indicators  
+Middle band – live metrics + summary  
+Bottom band – food journal
+
+### 2.1 Header area
+
+Replace the current big title + long sentence + “Step 1/2/3/4” explanation with:
+
+- Left side:
+  - App title: “Health Metrics Tracker”
+  - Short subtitle in smaller, lighter font: “Log today. Watch trends over time.”
+- Right side:
+  - Date picker
+  - A small status pill (“Ready”, “Saving…”, etc., which you already have)
+  - “Clear this day” button (as a small text or outline button, not a big red bar)
+
+Directly under the header, add a **step indicator bar** instead of huge “Step 1/2/3” headings, for example:
+
+[1 Date & goal] → [2 Daily metrics] → [3 Food journal] → [4 Summary]
+
+This can be a simple horizontal row of labels with subtle icons. No need for real navigation logic, just visual guidance.
+
+Remove the giant “Step 1: Select Date & Goal” heading. The step indicator row replaces it.
+
+### 2.2 Two-column main area
+
+Below the step bar, create a two-column layout:
+
+- **Left column (wider, ~65%)**: Today’s metrics and summary.
+- **Right column (narrower, ~35%)**: Goal settings and daily metric inputs.
+
+Left column content:
+
+1. **Today’s Summary card**
+
+   - One compact card with:
+     - Mode name (e.g. “Standard Weight Loss”).
+     - Three big numbers in a single row:
+       - Eaten
+       - Burned
+       - Balance (make this the most visually prominent, with green/amber/red colour).
+     - Two slim progress bars underneath:
+       - Calories eaten vs today’s dynamic target.
+       - Protein vs protein target.
+   - 1–2 short lines of plain-English text underneath, no more. Example:
+     “You have eaten 1,120 kcal of your 2,500 kcal target (45%) and are in a 1,380 kcal deficit so far. Protein is 30 g of 150 g, which is low for today.”
+
+2. **Weekly & monthly trends**
+
+   - Move the weekly/monthly stats into a compact card under the summary.
+   - Use a simple two-column layout inside that card:
+     - Left: last 7 days (avg burn, avg deficit, avg protein, avg weight).
+     - Right: last 30 days.
+   - Keep labels short and use smaller font; this card is secondary.
+
+Right column content:
+
+1. **Goal mode & advanced settings**
+
+   - Small card titled “Goal”.
+   - Inside: a compact dropdown for Goal Mode, with a short one-line helper, for example:
+     - “Choose maintenance or your preferred weight-loss speed.”
+   - Below, an `st.expander("Advanced goal settings")` with:
+     - Fallback maintenance calories
+     - Rolling window days
+     - Loss percentages sliders
+   - Use a small “Save goal” button within the expander only.
+
+2. **Daily metrics mini-form**
+
+   - Another small card titled “Today’s inputs”.
+   - Inputs:
+     - Weight (kg)
+     - Steps
+     - Total calories burned
+     - Protein target (if editable)
+   - Lay them out in two columns.
+   - Auto-save on change as you already planned; keep any visible “Save metrics” button very minimal or remove it if not needed.
+
+### 2.3 Food journal band
+
+Below the two-column band, use the full width for the Food Journal:
+
+- Title: “Food journal (today)”
+- A simple “Add entry” row at the top, styled like a single line form:
+  - Time, Meal, Calories, Protein, and an icon/button for “More details” to reveal place, V/L, * and context.
+- Below, show entries as **stacked cards** rather than a dense table:
+  - Each card:
+    - Top row: time + meal tag on the left, calories and protein badges on the right.
+    - Middle row: food text.
+    - Optional bottom row: context/comments in smaller grey text.
+    - Small trash icon in one corner to delete.
+- Keep table-style columns only on the **History** tab, not here.
+
+========================================
+3. HISTORY TAB CLEAN-UP
+========================================
+
+For the History tab:
+
+- Remove the huge text description on the left that explains features; that belongs in code comments, not the UI.
+- Keep a clean layout:
+  - A table of days at the top.
+  - Two charts below (Weight over time, 7-day rolling balance, and optionally protein trend).
+- Add a short one-line helper at the top, e.g. “Review how your weight, calories and protein have changed over time.”
+
+========================================
+4. MICROCOPY & VISUAL TIDY-UP
+========================================
+
+- Remove long instructional paragraphs from the main page. Replace them with:
+  - The short subtitle under the main title.
+  - A short helper line under the step bar.
+  - Tooltips or `help=` text on more complex controls.
+- Make sure all buttons have clear, short labels:
+  - “Clear day”
+  - “Save goal”
+  - “Add entry”
+- Reduce fonts where possible so the page feels light, not shouty.
+- Ensure cards have consistent padding and rounded corners, and that spacing between sections is generous.
+
+========================================
+5. WHAT TO KEEP UNCHANGED
+========================================
+
+- Do NOT change any API endpoints or database schema.
+- Keep all dynamic logic: auto-saving metrics, dynamic calorie targets from rolling burn, protein targets, weekly/monthly stats, CBT-E fields, and the Clear-day endpoint.
+- Only change layout, styling and wording so the app feels more like a clean dashboard and less like a text document.
+
+After you modify the code, run the app and verify that:
+- The Today tab opens with the new header, step bar, two-column layout, and food-journal cards.
+- All existing functionality still works as before.

@@ -1,0 +1,54 @@
+USERNAME LOOKUPS ARE CASE SENSITIVE (INVITES FAIL)
+Example: inviting “Amin” returns 404 User not found if the username is “amin”. This must be case-insensitive and forgiving.
+
+DECISION AND CONVENTION
+- Treat usernames as case-insensitive everywhere (search, invite, profile routes, follow, project invites).
+- Canonical form = lowercase, trimmed, remove leading “@”.
+- Enforce uniqueness on canonical form.
+
+BACKEND CHANGES (DB + API)
+1) Database
+- Add a new field on User: usernameCanonical (string, unique)
+  - On create and update: usernameCanonical = normaliseUsername(username)
+- Migration:
+  - Populate usernameCanonical for all existing users with lower(trim(username))
+  - Add unique index on usernameCanonical
+
+If your DB is Postgres and you prefer a single field approach, you may instead use CITEXT for username, but the safe cross-platform option is usernameCanonical + unique index.
+
+2) Normalisation helper
+Implement a shared helper used by all endpoints:
+normaliseUsername(input):
+- trim whitespace
+- remove leading "@"
+- convert to lowercase
+Return empty string if invalid.
+
+3) Update all relevant endpoints to use usernameCanonical for lookups:
+- buddy invite by username
+- follow/unfollow by username
+- public discovery search by username
+- public profile route by username
+- any project invite / join by username
+Anywhere you currently query User where username == input, change to usernameCanonical == normaliseUsername(input).
+
+4) Improve API error messaging
+If user not found:
+- return 404 with message: “No user found with that username or email.”
+Also return a hint field: “Usernames are not case-sensitive. Do not include spaces.”
+
+FRONTEND CHANGES (INVITE UX)
+- In the Invite Buddy field:
+  - Normalise input before sending.
+  - Accept either username or email, detect email by “@” and domain pattern.
+  - Show the user’s own username somewhere obvious in Profile so they know what to share.
+- Best improvement: replace blind invite with a lookup-first flow:
+  - User types username
+  - App shows matching public user card (avatar, @username)
+  - User taps “Invite”
+This prevents confusion between display name and username.
+
+ACCEPTANCE
+- Typing “Amin”, “amin”, “@Amin”, or “  AMIN  ” all resolve to the same account.
+- Invite succeeds when the user exists.
+- Error copy is helpful when the user does not exist.

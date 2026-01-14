@@ -1,0 +1,77 @@
+Build a modern, responsive personal website for Amin Hasan — a subject matter expert and senior consultant in Business Intelligence (BI), data analytics, embedded dashboards, and self-service analytics.
+
+Website Objective:
+Create a high-converting landing page that:
+
+Establishes Amin’s credibility and expertise
+
+Educates prospects on modern analytics tooling and self-service strategy
+
+Offers a free consultation call (link to Calendly: https://calendly.com/nextchaptermentor/30min)
+
+Includes case studies (see below)
+
+Converts visitors into qualified leads
+
+Branding & Tone:
+Clean, professional, trustworthy. Use British English. The tone should be consultative yet approachable. Prioritise user clarity.
+
+Sections to include:
+Hero Section
+
+Headline: “Expert Guidance in BI, Embedded Dashboards & Self-Service Analytics”
+
+Subtext: “Helping organisations unlock the power of their data stack with practical, modern solutions.”
+
+CTA Button: “Book a Free Consultation” → link to Calendly
+
+About Amin
+
+Summary: Pull from his LinkedIn bio, highlighting his roles at insightsoftware, Squirro, Trino, and his experience in embedded analytics, real-time reporting, and guiding C-level stakeholders.
+
+Services Offered
+
+BI Tool Selection & Evaluation (e.g. Tableau vs QuickSight vs Looker vs Metabase vs Lightdash)
+
+Semantic Layer & Self-Service Strategy Design
+
+Embedded Analytics Implementation (e.g. Logi Symphony, Superset)
+
+Real-Time Data Architecture Consulting
+
+Case Studies (Summarised)
+
+Bank of England (via Squirro): Implemented an AI-powered search and analytics solution, reducing manual insight discovery across departments.
+
+FAANG Clients (via insightsoftware): Delivered high-performing embedded dashboards with Simba connectors and Logi Symphony.
+
+Healthcare Venture: Guided dashboard strategy to align with finance and treatment education rollout.
+
+Reddit Insight – Self-Service BI: Provided advisory to data-driven orgs debating Tableau vs modern alternatives. Positioned self-service not as tool-first but as process-first.
+
+Thought Leadership
+
+Embed quotes or paraphrased advice from Amin’s Reddit contributions (e.g., “Start with a 2x2 framework: analytical literacy vs analytical need”; “Self-service begins with clear definitions and stakeholder alignment, not tools.”)
+
+Link to articles/videos (placeholder)
+
+Testimonials
+
+Placeholder blocks for quotes from clients or LinkedIn recommendations
+
+Contact / CTA
+
+Reiterate value of 30-min discovery call
+
+Button to book free consultation (Calendly)
+
+Design Notes:
+Use a one-page scroll layout
+
+Include professional imagery (dashboards, data team, whiteboards)
+
+Add trust badges (e.g. “Worked with: Bank of England, FAANG, insightsoftware, Squirro”)
+
+Mobile responsive
+
+Optimised for performance and readability
