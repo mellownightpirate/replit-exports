@@ -10,3 +10,15 @@
 **/*.sqlite-shm
 **/*.sqlite-wal
 **/attached_assets/
+
+# Replit scratch/exports
+**/attached_assets/
+**/generated_images/
+
+# macOS
+.DS_Store
+
+# Env and secrets (keep examples)
+.env
+.env.*
+!.env.example
